@@ -145,7 +145,6 @@ body {
   padding: 1.2rem 1.25rem 0.85rem;
   border-bottom: 1px solid var(--stroke);
   flex-shrink: 0;
-  position: relative;
 }
 .kicker {
   font-size: 0.66rem;
@@ -175,6 +174,7 @@ body {
 .toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.55rem 1.15rem;
   border-bottom: 1px solid var(--stroke);
@@ -194,9 +194,14 @@ body {
 }
 .audio-btn:hover { border-color: rgba(255,255,255,0.25); }
 .audio-btn.on {
-  border-color: rgba(251,191,36,0.5);
-  background: rgba(251,191,36,0.12);
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.12);
   color: var(--amber);
+}
+#pathBtn.on {
+  border-color: rgba(249, 115, 22, 0.5);
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--orange);
 }
 .toolbar-note { font-size: 0.68rem; color: #64748b; }
 
@@ -237,7 +242,6 @@ body {
   cursor: pointer;
   transition: all 0.25s ease;
   background: rgba(255,255,255,0.02);
-  position: relative;
 }
 .chapter-card:hover {
   border-color: rgba(249,115,22,0.45);
@@ -290,6 +294,13 @@ body {
   gap: 0.75rem;
   font-size: 1.75rem;
   letter-spacing: 0.15em;
+}
+.chapter-card.active .plate-visual {
+  animation: plateGlow 2.5s ease-in-out infinite alternate;
+}
+@keyframes plateGlow {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.15); }
 }
 .plate-visual.samhain { background: linear-gradient(135deg, #431407, #7c2d12); }
 .plate-visual.christian { background: linear-gradient(135deg, #052e16, #14532d); }
