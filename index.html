@@ -4,21 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Halloween History — The Night Between Worlds</title>
-  <meta name="description" content="Halloween is not only costumes and candy. This storymap traces Christian Allhallowtide — saints, souls, and vigils — alongside folk Samhain and modern global nights." />
+  <meta name="description" content="An atmospheric interactive storymap of Halloween: Christian Allhallowtide, Samhain fires, and global October nights." />
   <meta name="theme-color" content="#020617" />
 
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
   <link rel="stylesheet" href="styles.css" />
-
 </head>
 <body>
-  <!-- SPLASH -->
   <div class="splash" id="splash">
     <div class="splash-kicker">Interactive Storymap</div>
     <h1>The Night Between Worlds</h1>
@@ -33,7 +32,7 @@
       costumes grew <em>alongside</em> that sacred calendar — not only instead of it.
     </div>
     <button class="splash-btn" id="splashStart" type="button">Enter the story →</button>
-    <p class="splash-hint">Use chapters, map layers, and ← → keys · optional ambient sound inside</p>
+    <p class="splash-hint">Chapters · journey paths · ambient sound · ← → keys</p>
   </div>
 
   <div class="particles" id="particles" aria-hidden="true"></div>
@@ -43,12 +42,13 @@
       <div class="sidebar-header">
         <div class="kicker">Halloween History</div>
         <h1>The Night Between Worlds</h1>
-        <p class="subtitle">Samhain fires, Christian Allhallowtide, and the modern night — told as one continuous season, not a simple replacement story.</p>
+        <p class="subtitle">Samhain fires, Christian Allhallowtide, and the modern night — one continuous season, not a simple replacement story.</p>
       </div>
 
       <div class="toolbar">
-        <button class="audio-btn" id="audioBtn" type="button" title="Toggle soft ambient tone">🔊 Ambient off</button>
-        <span class="toolbar-note">Soft generated drone — no track download</span>
+        <button class="audio-btn" id="audioBtn" type="button" title="Toggle ambient sound">🔊 Ambient off</button>
+        <button class="audio-btn" id="pathBtn" type="button" title="Toggle journey paths">🛤️ Paths on</button>
+        <span class="toolbar-note">GSAP · Turf · MapLibre</span>
       </div>
 
       <div class="progress-wrap">
@@ -67,7 +67,7 @@
       </div>
 
       <div class="sidebar-footer">
-        Drawing on Hutton, Rogers, Skal, Brandes & church histories ·
+        Drawing on Hutton, Rogers, Skal, Brandes &amp; church histories ·
         <a href="https://spatialytics.space" target="_blank" rel="noopener">Spatialytics</a>
       </div>
     </aside>
@@ -84,11 +84,10 @@
         <button class="style-chip" data-style="liberty" type="button">Liberty</button>
       </div>
       <div id="map"></div>
-      <div class="hint" id="hint">Chapters fly the map · green markers = Christian thread · ← → to step</div>
+      <div class="hint" id="hint">Enter a chapter — the map flies, paths draw, markers pulse</div>
     </div>
   </div>
 
   <script src="map-app.js"></script>
-
 </body>
 </html>
