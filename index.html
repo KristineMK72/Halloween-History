@@ -2,211 +2,539 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Halloween Storymap: Christian and Secular Traditions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Halloween History — Interactive Storymap</title>
+  <meta name="description" content="Explore the roots of Halloween: Samhain, Allhallowtide, medieval traditions, Irish-American reinvention, and global celebrations." />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&family=Creepster&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet" />
   <style>
-    body { 
-      margin: 0; 
-      font-family: 'EB Garamond', serif; 
-      background: #1a1a1a; 
-      color: #fff; 
-      display: flex; 
-      flex-direction: row; 
+    :root {
+      --bg: #020617;
+      --panel: #0f172a;
+      --panel-2: #1e293b;
+      --ink: #f1f5f9;
+      --muted: #94a3b8;
+      --orange: #f97316;
+      --amber: #fbbf24;
+      --purple: #a855f7;
+      --green: #22c55e;
+      --cyan: #22d3ee;
+      --stroke: rgba(255,255,255,0.1);
     }
-    .container { 
-      display: flex; 
-      width: 100%; 
-      height: 100vh; 
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow: hidden;
     }
-    .sidebar { 
-      width: 30%; 
-      padding: 20px; 
-      overflow-y: auto; 
-      background: #222; 
-      border-right: 2px solid #444; 
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(320px, 400px) 1fr;
+      height: 100vh;
     }
-    .sidebar h2, .sidebar h3 { color: #fff; }
-    .map { 
-      width: 70%; 
-      height: 100vh; 
+
+    /* Sidebar */
+    .sidebar {
+      background: linear-gradient(180deg, var(--panel) 0%, #0b1220 100%);
+      border-right: 1px solid var(--stroke);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-    #map { 
-      height: 100%; 
-      border-radius: 12px; 
+
+    .sidebar-header {
+      padding: 1.25rem 1.25rem 0.75rem;
+      border-bottom: 1px solid var(--stroke);
+      flex-shrink: 0;
     }
-    .christian-popup .leaflet-popup-content { 
-      background: rgba(46, 125, 50, 0.95); 
-      color: white; 
-      font-family: 'EB Garamond', serif; 
-      font-size: 14px; 
-      padding: 10px; 
-      border-radius: 8px; 
+
+    .kicker {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--orange);
+      font-weight: 600;
     }
-    .secular-popup .leaflet-popup-content { 
-      background: rgba(255, 87, 34, 0.95); 
-      color: white; 
-      font-family: 'Creepster', cursive; 
-      font-size: 16px; 
-      padding: 10px; 
-      border-radius: 8px; 
+
+    .sidebar-header h1 {
+      margin: 0.35rem 0 0.25rem;
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
     }
-    .leaflet-control-layers { 
-      background: #333; 
-      color: #fff; 
-      border-radius: 8px; 
-      padding: 10px; 
+
+    .sidebar-header p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.45;
     }
-    .leaflet-control-layers label { color: #fff; }
-    .christian-icon { font-size: 32px; } /* Larger crosses */
-    .secular-icon { font-size: 24px; } /* Bonfires and pumpkins */
-    @media (max-width: 768px) { 
-      .container { flex-direction: column; } 
-      .sidebar { width: 100%; height: 30%; } 
-      .map { width: 100%; height: 70%; } 
+
+    .chapters {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem;
+    }
+
+    .chapter {
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .chapter:hover {
+      border-color: rgba(249, 115, 22, 0.4);
+      background: rgba(249, 115, 22, 0.06);
+    }
+
+    .chapter.active {
+      border-color: var(--orange);
+      background: rgba(249, 115, 22, 0.12);
+      box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25);
+    }
+
+    .chapter .era {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .chapter h3 {
+      margin: 0.2rem 0 0.35rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .chapter p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .sidebar-footer {
+      padding: 0.75rem 1.25rem 1.1rem;
+      border-top: 1px solid var(--stroke);
+      font-size: 0.72rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer a { color: var(--cyan); text-decoration: none; }
+    .sidebar-footer a:hover { text-decoration: underline; }
+
+    /* Map panel */
+    .map-wrap {
+      position: relative;
+      height: 100%;
+    }
+
+    #map { height: 100%; width: 100%; background: #0a0f1a; }
+
+    .map-controls {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 1000;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border: 1px solid var(--stroke);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(10px);
+      color: var(--ink);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.4rem 0.7rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    .chip:hover { border-color: rgba(255,255,255,0.25); }
+    .chip.on {
+      border-color: transparent;
+    }
+    .chip.on.samhain { background: rgba(249, 115, 22, 0.9); color: #1a0a00; }
+    .chip.on.christian { background: rgba(34, 197, 94, 0.9); color: #052e16; }
+    .chip.on.modern { background: rgba(168, 85, 247, 0.9); color: #1e0533; }
+
+    /* Custom markers */
+    .pin {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      border: 2px solid rgba(255,255,255,0.85);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+    }
+    .pin.samhain { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .pin.christian { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .pin.modern { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+
+    /* Popups */
+    .leaflet-popup-content-wrapper {
+      background: var(--panel-2);
+      color: var(--ink);
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      min-width: 220px;
+      max-width: 280px;
+    }
+    .leaflet-popup-tip { background: var(--panel-2); }
+    .popup-inner { padding: 12px 14px; }
+    .popup-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .popup-tag.samhain { color: var(--orange); }
+    .popup-tag.christian { color: var(--green); }
+    .popup-tag.modern { color: var(--purple); }
+    .popup-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+      line-height: 1.25;
+    }
+    .popup-body {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .popup-source {
+      margin-top: 8px;
+      font-size: 0.7rem;
+      color: #64748b;
+      font-style: italic;
+    }
+
+    .leaflet-control-attribution {
+      background: rgba(15,23,42,0.8) !important;
+      color: #64748b !important;
+      font-size: 10px !important;
+    }
+    .leaflet-control-attribution a { color: #94a3b8 !important; }
+
+    /* Mobile */
+    @media (max-width: 800px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 42vh 58vh;
+      }
+      .sidebar { border-right: none; border-bottom: 1px solid var(--stroke); }
+      .sidebar-header h1 { font-size: 1.25rem; }
+      .chapters { padding: 0.5rem; }
+      .chapter { padding: 0.7rem 0.8rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Sidebar with Narrative -->
-    <div class="sidebar">
-      <h2>The Eternal Dance of Halloween</h2>
-      
-      <h3>Origins: Samhain’s Fires</h3>
-      <p style="font-family: 'Creepster', cursive;">Before Christianity, the Celts celebrated <b>Samhain</b> (500 BCE), lighting 🔥 bonfires to ward off spirits. The veil between worlds thinned, inviting divination and disguises (Hutton, 1996).</p>
-      
-      <h3>Christian Embrace (600–1000 CE)</h3>
-      <p style="font-family: 'EB Garamond', serif;">The Church reshaped Samhain into ✝ All Hallows’ Eve. Pope Gregory III set All Saints’ Day on November 1, with 🕯️ vigils and prayers for souls (Butler, 2008).</p>
-      
-      <h3>Medieval Syncretism (1000–1500)</h3>
-      <p>Souling (prayers for cakes) and ⛪ Masses blended with 🎃 guising and 🔥 turnip lanterns. Bonfires persisted as Christian light and pagan protection (Hutton, 1996).</p>
-      
-      <h3>Early Modern Shifts (1500–1800)</h3>
-      <p>Protestants rejected Halloween as “popish,” but Catholics kept ✝ Allhallowtide. Secular 👻 mischief and 🔥 divination games grew in Britain (Rogers, 2002).</p>
-      
-      <h3>American Secular Boom (1800–Present)</h3>
-      <p style="font-family: 'Creepster', cursive;">Irish immigrants brought Halloween to America, birthing 💀 trick-or-treating and 🎃 pumpkin carving. Commercialization exploded with 🔥 candy and horror films (Skal, 2002).</p>
-      
-      <h3>Modern Global Halloween</h3>
-      <p>Today, ✝ Christian Masses coexist with 🎃 costume parties and 🔥 haunted attractions. Mexico’s Día de los Muertos blends ⛪ Catholic and indigenous traditions (Brandes, 2006).</p>
-    </div>
-    
-    <!-- Map -->
-    <div class="map">
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="kicker">Interactive Storymap</div>
+        <h1>Halloween History</h1>
+        <p>From Celtic Samhain to global October nights — click a chapter to explore the places that shaped the holiday.</p>
+      </div>
+
+      <div class="chapters" id="chapters">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="sidebar-footer">
+        Sources include Hutton, Rogers, Skal, Brandes & others. Built as a public explainer ·
+        <a href="https://spatialytics.space" target="_blank" rel="noopener">Spatialytics</a>
+      </div>
+    </aside>
+
+    <div class="map-wrap">
+      <div class="map-controls" id="layerChips">
+        <button class="chip on samhain" data-layer="samhain">🔥 Samhain / Folk</button>
+        <button class="chip on christian" data-layer="christian">✝ Christian</button>
+        <button class="chip on modern" data-layer="modern">🎃 Modern / Global</button>
+      </div>
       <div id="map"></div>
     </div>
   </div>
 
   <script>
-    // Initialize Dark Map
-    const map = L.map('map').setView([20, 0], 2); // Global view
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> & <a href="https://carto.com/attributions">CARTO</a>',
-      maxZoom: 19
-    }).addTo(map);
-
-    // Custom Icons
-    const christianIcon = L.divIcon({
-      html: '<span style="font-size: 32px;">✝</span>',
-      className: 'christian-icon',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
-    });
-    const secularIcon = L.divIcon({
-      html: '<span style="font-size: 24px;">🔥🎃</span>',
-      className: 'secular-icon',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
-    });
-
-    // Data: Regions and Practices
-    const markers = [
+    // ---------- Data ----------
+    const CHAPTERS = [
       {
-        coords: [53.3498, -6.2603], // Ireland
-        type: 'secular',
-        popup: '<b>Ireland (~500 BCE–1000 CE)</b><br>🔥🎃 Samhain: Bonfires, divination, food offerings, disguises.<br><i>(Hutton, 1996)</i>'
+        id: "origins",
+        era: "c. 500 BCE – 400 CE",
+        title: "Samhain’s Fires",
+        summary: "Celtic Ireland and Britain marked the end of harvest with bonfires, open thresholds between worlds, and protective disguises.",
+        center: [53.4, -7.5],
+        zoom: 6,
+        highlight: ["ireland-samhain", "scotland-samhain"]
       },
       {
-        coords: [53.3498, -6.2603], // Ireland
-        type: 'christian',
-        popup: '<b>Ireland (600–1000 CE)</b><br>✝ All Hallows’ Eve: Church vigils, prayers for saints, early All Saints’ Day Masses.<br><i>(Santino, 1994)</i>'
+        id: "christian",
+        era: "600 – 1000 CE",
+        title: "Christian Embrace",
+        summary: "The Church layered All Saints’ and All Souls’ onto the autumn season. Rome set the calendar; local churches kept vigils and prayers for the dead.",
+        center: [41.9, 12.5],
+        zoom: 5,
+        highlight: ["rome-saints", "ireland-christian"]
       },
       {
-        coords: [41.9028, 12.4964], // Rome
-        type: 'christian',
-        popup: '<b>Rome (609–800 CE)</b><br>🕯️✝ Papal establishment of All Saints’ Day (Nov 1), later All Souls’ Day.<br><i>(Butler, 2008)</i>'
+        id: "medieval",
+        era: "1000 – 1500",
+        title: "Medieval Syncretism",
+        summary: "Souling, guising, church bells, and turnip lanterns mixed sacred duty with folk custom across the British Isles.",
+        center: [52.5, -2],
+        zoom: 6,
+        highlight: ["britain-souling", "britain-guising"]
       },
       {
-        coords: [51.5074, -0.1278], // Britain
-        type: 'christian',
-        popup: '<b>Britain (1000–1500)</b><br>⛪✝ Souling, All Saints’ Masses, church bells, mumming as saints.<br><i>(Hutton, 1996)</i>'
+        id: "early-modern",
+        era: "1500 – 1800",
+        title: "Early Modern Shifts",
+        summary: "Reformation pressures reshaped the calendar in Protestant lands while folk games, mischief, and divination persisted.",
+        center: [54, -4],
+        zoom: 5,
+        highlight: ["britain-guising", "ireland-samhain"]
       },
       {
-        coords: [51.5074, -0.1278], // Britain
-        type: 'secular',
-        popup: '<b>Britain (1000–1800)</b><br>🔥🎃 Guising, turnip lanterns, divination games, apple bobbing.<br><i>(Rogers, 2002)</i>'
+        id: "america",
+        era: "1800 – 1950",
+        title: "Irish-American Reinvention",
+        summary: "Immigrants carried Halloween across the Atlantic. Pumpkins replaced turnips; trick-or-treating and community parties took root.",
+        center: [40.5, -75],
+        zoom: 5,
+        highlight: ["nyc-modern", "boston-modern"]
       },
       {
-        coords: [40.7128, -74.0060], // North America (New York)
-        type: 'secular',
-        popup: '<b>North America (1800–Present)</b><br>🔥🎃 Trick-or-treating, pumpkin carving, haunted houses, horror films.<br><i>(Skal, 2002)</i>'
-      },
-      {
-        coords: [40.7128, -74.0060], // North America
-        type: 'christian',
-        popup: '<b>North America (1800–Present)</b><br>✝ All Saints’/All Souls’ Masses, church harvest festivals, trunk-or-treat.<br><i>(McGowan, 2014)</i>'
-      },
-      {
-        coords: [19.4326, -99.1332], // Mexico
-        type: 'christian',
-        popup: '<b>Mexico (1500–Present)</b><br>⛪✝ Día de los Muertos: Catholic Masses, cemetery vigils, altars.<br><i>(Brandes, 2006)</i>'
-      },
-      {
-        coords: [19.4326, -99.1332], // Mexico
-        type: 'secular',
-        popup: '<b>Mexico (1500–Present)</b><br>🔥🎃 Día de los Muertos: Sugar skulls, marigold decorations, festivals.<br><i>(Brandes, 2006)</i>'
+        id: "global",
+        era: "1950 – Present",
+        title: "Global October Nights",
+        summary: "Commercial Halloween spread worldwide while older traditions — including Día de los Muertos — continued as living, layered practices.",
+        center: [25, -40],
+        zoom: 3,
+        highlight: ["mexico-dotd", "nyc-modern", "japan-modern"]
       }
     ];
 
-    // Layer Groups
-    const christianLayer = L.layerGroup();
-    const secularLayer = L.layerGroup();
+    const PLACES = [
+      {
+        id: "ireland-samhain",
+        coords: [53.3498, -6.2603],
+        layer: "samhain",
+        emoji: "🔥",
+        title: "Ireland — Heart of Samhain",
+        body: "In early Ireland the festival of Samhain marked summer’s end. Great bonfires, communal feasting, and a sense that the boundary between living and dead grew thin shaped later Halloween imagery.",
+        source: "Hutton, Stations of the Sun"
+      },
+      {
+        id: "scotland-samhain",
+        coords: [56.4907, -4.2026],
+        layer: "samhain",
+        emoji: "🔥",
+        title: "Scotland — Guising & Fire",
+        body: "Scottish and northern British communities kept strong fire customs and guising (disguise) traditions tied to the same seasonal turning point.",
+        source: "Hutton; Rogers"
+      },
+      {
+        id: "rome-saints",
+        coords: [41.9028, 12.4964],
+        layer: "christian",
+        emoji: "✝",
+        title: "Rome — All Saints’ Day",
+        body: "Pope Gregory III (8th c.) is associated with fixing the celebration of All Saints on 1 November. The broader Allhallowtide season gave the Church a formal autumn focus on saints and the dead.",
+        source: "Butler; church histories"
+      },
+      {
+        id: "ireland-christian",
+        coords: [53.2, -7.8],
+        layer: "christian",
+        emoji: "🕯️",
+        title: "Ireland — All Hallows’ Eve",
+        body: "As Christianity took root, the night before All Saints’ became All Hallows’ Eve. Church vigils and prayers for the dead existed alongside older seasonal customs.",
+        source: "Santino; Hutton"
+      },
+      {
+        id: "britain-souling",
+        coords: [52.4862, -1.8904],
+        layer: "christian",
+        emoji: "⛪",
+        title: "England — Souling",
+        body: "In parts of England, ‘souling’ involved going door to door offering prayers for the dead in exchange for soul cakes — a clear Christian–folk blend.",
+        source: "Hutton, 1996"
+      },
+      {
+        id: "britain-guising",
+        coords: [53.4808, -2.2426],
+        layer: "samhain",
+        emoji: "🎃",
+        title: "Britain — Guising & Lanterns",
+        body: "Guising, mumming, and hollowed turnip lanterns (the ancestors of jack-o’-lanterns) remained popular folk practices through the medieval and early modern periods.",
+        source: "Rogers, 2002"
+      },
+      {
+        id: "boston-modern",
+        coords: [42.3601, -71.0589],
+        layer: "modern",
+        emoji: "🎃",
+        title: "New England — Immigrant Roots",
+        body: "Irish and Scottish immigrants in the 19th century brought Halloween customs to North America. Community parties and pranks gradually gave way to more organized celebrations.",
+        source: "Skal, 2002"
+      },
+      {
+        id: "nyc-modern",
+        coords: [40.7128, -74.006],
+        layer: "modern",
+        emoji: "🍬",
+        title: "United States — Trick-or-Treat Era",
+        body: "By the mid-20th century, trick-or-treating, commercial costumes, and candy culture defined American Halloween — later exported globally through media and retail.",
+        source: "Skal; cultural histories"
+      },
+      {
+        id: "mexico-dotd",
+        coords: [19.4326, -99.1332],
+        layer: "modern",
+        emoji: "💀",
+        title: "Mexico — Día de los Muertos",
+        body: "Día de los Muertos is a distinct living tradition that weaves Indigenous remembrance practices with Catholic All Saints’ / All Souls’ observances — ofrendas, marigolds, and family cemetery visits.",
+        source: "Brandes, 2006"
+      },
+      {
+        id: "japan-modern",
+        coords: [35.6762, 139.6503],
+        layer: "modern",
+        emoji: "🎃",
+        title: "Japan & Global Spread",
+        body: "In recent decades commercial Halloween (costumes, parties, themed events) has grown rapidly in places with little prior folk tradition — a modern media-driven layer of the holiday.",
+        source: "Contemporary cultural reporting"
+      }
+    ];
 
-    // Add Markers
-    markers.forEach(marker => {
-      const layer = marker.type === 'christian' ? christianLayer : secularLayer;
-      const icon = marker.type === 'christian' ? christianIcon : secularIcon;
-      L.marker(marker.coords, { icon })
-        .bindPopup(marker.popup, { className: `${marker.type}-popup` })
-        .addTo(layer);
+    // ---------- Map ----------
+    const map = L.map("map", {
+      zoomControl: true,
+      attributionControl: true
+    }).setView([30, -20], 2);
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; OpenStreetMap &copy; CARTO",
+      maxZoom: 18,
+      subdomains: "abcd"
+    }).addTo(map);
+
+    const layers = {
+      samhain: L.layerGroup().addTo(map),
+      christian: L.layerGroup().addTo(map),
+      modern: L.layerGroup().addTo(map)
+    };
+
+    const markersById = {};
+
+    function makeIcon(layer, emoji) {
+      return L.divIcon({
+        className: "",
+        html: `<div class="pin ${layer}">${emoji}</div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+        popupAnchor: [0, -18]
+      });
+    }
+
+    PLACES.forEach((p) => {
+      const marker = L.marker(p.coords, {
+        icon: makeIcon(p.layer, p.emoji)
+      }).bindPopup(`
+        <div class="popup-inner">
+          <div class="popup-tag ${p.layer}">${p.layer}</div>
+          <div class="popup-title">${p.title}</div>
+          <div class="popup-body">${p.body}</div>
+          <div class="popup-source">${p.source}</div>
+        </div>
+      `);
+      marker.addTo(layers[p.layer]);
+      markersById[p.id] = marker;
     });
 
-    // Add Layers to Map
-    christianLayer.addTo(map);
-    secularLayer.addTo(map);
+    // ---------- Chapters UI ----------
+    const chaptersEl = document.getElementById("chapters");
+    let activeChapter = null;
 
-    // Layer Control
-    L.control.layers({}, {
-      'Christian Traditions': christianLayer,
-      'Secular Traditions': secularLayer
-    }, { position: 'topright' }).addTo(map);
-  </script>
+    CHAPTERS.forEach((ch, i) => {
+      const el = document.createElement("div");
+      el.className = "chapter" + (i === 0 ? " active" : "");
+      el.dataset.id = ch.id;
+      el.innerHTML = `
+        <div class="era">${ch.era}</div>
+        <h3>${ch.title}</h3>
+        <p>${ch.summary}</p>
+      `;
+      el.addEventListener("click", () => activateChapter(ch.id));
+      chaptersEl.appendChild(el);
+    });
 
-  <!-- Auto-export PNG -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script>
-    window.onload = () => {
-      setTimeout(() => {
-        html2canvas(document.getElementById('map')).then(canvas => {
-          const link = document.createElement('a');
-          link.href = canvas.toDataURL('image/png');
-          link.download = 'halloween-storymap.png';
-          link.click();
-        });
-      }, 2000);
-    };
+    function activateChapter(id) {
+      const ch = CHAPTERS.find((c) => c.id === id);
+      if (!ch) return;
+      activeChapter = id;
+
+      document.querySelectorAll(".chapter").forEach((el) => {
+        el.classList.toggle("active", el.dataset.id === id);
+      });
+
+      map.flyTo(ch.center, ch.zoom, { duration: 1.4 });
+
+      // Briefly open the first highlight popup
+      if (ch.highlight && ch.highlight.length) {
+        const first = markersById[ch.highlight[0]];
+        if (first) {
+          setTimeout(() => first.openPopup(), 900);
+        }
+      }
+    }
+
+    // Start on origins
+    activateChapter("origins");
+
+    // ---------- Layer chips ----------
+    document.querySelectorAll(".chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.layer;
+        const isOn = btn.classList.toggle("on");
+        if (isOn) {
+          map.addLayer(layers[key]);
+        } else {
+          map.removeLayer(layers[key]);
+        }
+      });
+    });
   </script>
 </body>
 </html>
