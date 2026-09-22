@@ -3,11 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Halloween History — Restoring…</title>
-  <meta http-equiv="refresh" content="0;url=https://github.com/KristineMK72/Halloween-History" />
+  <title>Halloween History — The Night Between Worlds</title>
+  <meta name="description" content="Halloween is not only costumes and candy. This storymap traces Christian Allhallowtide — saints, souls, and vigils — alongside folk Samhain and modern global nights." />
+  <meta name="theme-color" content="#020617" />
+
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
 </head>
 <body>
-  <p>Restoring map… If you see this, hard-refresh in a moment.</p>
-  <p><a href="https://github.com/KristineMK72/Halloween-History/tree/09d37e8f9b33701ce5b1de83745e71dbc838cc7e">Last good commit</a></p>
+  <!-- SPLASH -->
+  <div class="splash" id="splash">
+    <div class="splash-kicker">Interactive Storymap</div>
+    <h1>The Night Between Worlds</h1>
+    <p class="splash-lead">
+      Halloween is often told as pure pagan survival or pure commercial fun.
+      The longer story is more layered — and more Christian than many people realize.
+    </p>
+    <div class="splash-stress">
+      <strong>Christian toe-hold:</strong> For centuries the season has included
+      <strong>All Saints’ Day</strong>, <strong>All Souls’ Day</strong>, church vigils,
+      prayers for the dead, souling, and cemetery remembrance. Folk fire and modern
+      costumes grew <em>alongside</em> that sacred calendar — not only instead of it.
+    </div>
+    <button class="splash-btn" id="splashStart" type="button">Enter the story →</button>
+    <p class="splash-hint">Use chapters, map layers, and ← → keys · optional ambient sound inside</p>
+  </div>
+
+  <div class="particles" id="particles" aria-hidden="true"></div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="kicker">Halloween History</div>
+        <h1>The Night Between Worlds</h1>
+        <p class="subtitle">Samhain fires, Christian Allhallowtide, and the modern night — told as one continuous season, not a simple replacement story.</p>
+      </div>
+
+      <div class="toolbar">
+        <button class="audio-btn" id="audioBtn" type="button" title="Toggle soft ambient tone">🔊 Ambient off</button>
+        <span class="toolbar-note">Soft generated drone — no track download</span>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="progressLabel">Chapter 1 of 6</span>
+          <span>← → keys</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <div class="story-panel" id="storyPanel"></div>
+
+      <div class="nav-btns">
+        <button class="nav-btn" id="btnPrev" type="button">← Previous</button>
+        <button class="nav-btn" id="btnNext" type="button">Next →</button>
+      </div>
+
+      <div class="sidebar-footer">
+        Drawing on Hutton, Rogers, Skal, Brandes & church histories ·
+        <a href="https://spatialytics.space" target="_blank" rel="noopener">Spatialytics</a>
+      </div>
+    </aside>
+
+    <div class="map-wrap">
+      <div class="map-controls">
+        <button class="chip on samhain" data-layer="samhain" type="button">🔥 Samhain / Folk</button>
+        <button class="chip on christian" data-layer="christian" type="button">✝ Christian</button>
+        <button class="chip on modern" data-layer="modern" type="button">🎃 Modern / Global</button>
+      </div>
+      <div class="style-bar" id="styleBar">
+        <button class="style-chip on" data-style="fiord" type="button">Fiord</button>
+        <button class="style-chip" data-style="dark" type="button">Dark</button>
+        <button class="style-chip" data-style="liberty" type="button">Liberty</button>
+      </div>
+      <div id="map"></div>
+      <div class="hint" id="hint">Chapters fly the map · green markers = Christian thread · ← → to step</div>
+    </div>
+  </div>
+
+  <script src="map-app.js"></script>
+
 </body>
 </html>
