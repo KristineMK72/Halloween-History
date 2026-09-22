@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Halloween History — The Night Between Worlds</title>
-  <meta name="description" content="An interactive storymap of Halloween: Samhain fires, Allhallowtide, medieval customs, Irish-American reinvention, and global October nights." />
+  <meta name="description" content="Halloween is not only costumes and candy. This storymap traces Christian Allhallowtide — saints, souls, and vigils — alongside folk Samhain and modern global nights." />
   <meta name="theme-color" content="#020617" />
 
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
@@ -12,7 +12,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -39,14 +39,93 @@
       overflow: hidden;
     }
 
+    /* ===== SPLASH ===== */
+    .splash {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 20%, rgba(249,115,22,0.15), transparent 55%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(74,222,128,0.08), transparent 50%),
+        linear-gradient(180deg, #020617 0%, #0b1220 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+      transition: opacity 0.7s ease, visibility 0.7s ease;
+    }
+    .splash.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .splash-kicker {
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--orange);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+    .splash h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 25%, var(--amber) 90%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .splash-lead {
+      max-width: 520px;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0 0 1.25rem;
+    }
+    .splash-stress {
+      max-width: 540px;
+      padding: 1rem 1.25rem;
+      border-radius: 14px;
+      border: 1px solid rgba(74,222,128,0.35);
+      background: rgba(74,222,128,0.08);
+      font-size: 0.92rem;
+      color: #d1fae5;
+      line-height: 1.5;
+      margin-bottom: 1.75rem;
+    }
+    .splash-stress strong { color: var(--green); }
+    .splash-btn {
+      border: none;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #1c0900;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 0.85rem 1.75rem;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 12px 40px -12px rgba(249,115,22,0.55);
+      transition: transform 0.15s ease;
+    }
+    .splash-btn:hover { transform: translateY(-2px); }
+    .splash-hint {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
     .app {
       display: grid;
-      grid-template-columns: minmax(340px, 420px) 1fr;
+      grid-template-columns: minmax(340px, 430px) 1fr;
       height: 100vh;
       position: relative;
     }
 
-    /* Firefly particles */
     .particles {
       pointer-events: none;
       position: fixed;
@@ -66,12 +145,11 @@
     }
     @keyframes floatUp {
       0%   { transform: translateY(100vh) scale(0.4); opacity: 0; }
-      10%  { opacity: 0.7; }
-      90%  { opacity: 0.5; }
+      10%  { opacity: 0.65; }
+      90%  { opacity: 0.45; }
       100% { transform: translateY(-10vh) scale(1); opacity: 0; }
     }
 
-    /* Sidebar */
     .sidebar {
       background: linear-gradient(165deg, #0b1220 0%, #070d18 50%, #0a1628 100%);
       border-right: 1px solid var(--stroke);
@@ -91,21 +169,21 @@
     }
 
     .sidebar-header {
-      padding: 1.35rem 1.35rem 1rem;
+      padding: 1.2rem 1.25rem 0.85rem;
       border-bottom: 1px solid var(--stroke);
       flex-shrink: 0;
       position: relative;
     }
     .kicker {
-      font-size: 0.68rem;
+      font-size: 0.66rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--orange);
       font-weight: 700;
     }
     .sidebar-header h1 {
-      margin: 0.4rem 0 0.35rem;
-      font-size: 1.65rem;
+      margin: 0.35rem 0 0.3rem;
+      font-size: 1.5rem;
       font-weight: 800;
       letter-spacing: -0.03em;
       line-height: 1.1;
@@ -116,22 +194,52 @@
     }
     .sidebar-header .subtitle {
       margin: 0;
-      font-size: 0.84rem;
+      font-size: 0.8rem;
       color: var(--muted);
       line-height: 1.45;
     }
 
-    /* Progress */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.15rem;
+      border-bottom: 1px solid var(--stroke);
+      flex-shrink: 0;
+    }
+    .audio-btn {
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.04);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .audio-btn:hover { border-color: rgba(255,255,255,0.25); }
+    .audio-btn.on {
+      border-color: rgba(251,191,36,0.5);
+      background: rgba(251,191,36,0.12);
+      color: var(--amber);
+    }
+    .toolbar-note {
+      font-size: 0.68rem;
+      color: #64748b;
+    }
+
     .progress-wrap {
-      padding: 0.75rem 1.35rem 0.25rem;
+      padding: 0.65rem 1.25rem 0.2rem;
       flex-shrink: 0;
     }
     .progress-meta {
       display: flex;
       justify-content: space-between;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: var(--muted);
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.3rem;
     }
     .progress-bar {
       height: 4px;
@@ -151,14 +259,14 @@
     .story-panel {
       flex: 1;
       overflow-y: auto;
-      padding: 0.85rem 1.1rem 1rem;
+      padding: 0.75rem 1rem 0.85rem;
     }
 
     .chapter-card {
       border: 1px solid var(--stroke);
       border-radius: 14px;
-      padding: 0.95rem 1.05rem;
-      margin-bottom: 0.65rem;
+      padding: 0.85rem 0.95rem;
+      margin-bottom: 0.6rem;
       cursor: pointer;
       transition: all 0.25s ease;
       background: rgba(255,255,255,0.02);
@@ -174,36 +282,82 @@
       background: linear-gradient(135deg, rgba(249,115,22,0.14), rgba(251,191,36,0.05));
       box-shadow: 0 0 0 1px rgba(249,115,22,0.3), 0 12px 40px -20px rgba(249,115,22,0.4);
     }
+    .chapter-card.christian-heavy.active {
+      border-color: rgba(74,222,128,0.55);
+      background: linear-gradient(135deg, rgba(74,222,128,0.12), rgba(249,115,22,0.06));
+      box-shadow: 0 0 0 1px rgba(74,222,128,0.25), 0 12px 40px -20px rgba(74,222,128,0.25);
+    }
     .chapter-card .era {
-      font-size: 0.66rem;
+      font-size: 0.64rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--amber);
       font-weight: 700;
     }
     .chapter-card h3 {
-      margin: 0.25rem 0 0.4rem;
-      font-size: 1.05rem;
+      margin: 0.2rem 0 0.35rem;
+      font-size: 1rem;
       font-weight: 700;
     }
-    .chapter-card p {
+    .chapter-card > p {
       margin: 0;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
-      line-height: 1.5;
+      line-height: 1.45;
     }
-    .chapter-card .story-expand {
+
+    .plate {
       display: none;
       margin-top: 0.65rem;
-      padding-top: 0.65rem;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--stroke);
+      background: #0f172a;
+    }
+    .chapter-card.active .plate { display: block; animation: fadeIn 0.4s ease; }
+    .plate-visual {
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      font-size: 1.75rem;
+      letter-spacing: 0.15em;
+    }
+    .plate-visual.samhain { background: linear-gradient(135deg, #431407, #7c2d12); }
+    .plate-visual.christian { background: linear-gradient(135deg, #052e16, #14532d); }
+    .plate-visual.blend { background: linear-gradient(135deg, #1c1917, #3f3f46); }
+    .plate-visual.modern { background: linear-gradient(135deg, #2e1065, #4c1d95); }
+    .plate-caption {
+      padding: 0.45rem 0.65rem;
+      font-size: 0.68rem;
+      color: #94a3b8;
+      line-height: 1.35;
       border-top: 1px solid var(--stroke);
-      font-size: 0.8rem;
+    }
+
+    .story-expand {
+      display: none;
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--stroke);
+      font-size: 0.78rem;
       color: #cbd5e1;
       line-height: 1.55;
     }
     .chapter-card.active .story-expand {
       display: block;
       animation: fadeIn 0.4s ease;
+    }
+    .story-expand .christian-callout {
+      margin-top: 0.65rem;
+      padding: 0.55rem 0.7rem;
+      border-left: 3px solid var(--green);
+      background: rgba(74,222,128,0.08);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.76rem;
+      color: #bbf7d0;
+      line-height: 1.45;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
@@ -213,7 +367,7 @@
     .nav-btns {
       display: flex;
       gap: 0.5rem;
-      padding: 0.5rem 1.1rem 0.85rem;
+      padding: 0.45rem 1rem 0.75rem;
       flex-shrink: 0;
     }
     .nav-btn {
@@ -222,9 +376,9 @@
       background: rgba(255,255,255,0.04);
       color: var(--ink);
       font-family: inherit;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
-      padding: 0.55rem 0.75rem;
+      padding: 0.5rem 0.7rem;
       border-radius: 10px;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -233,22 +387,18 @@
       border-color: var(--orange);
       background: rgba(249,115,22,0.12);
     }
-    .nav-btn:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
+    .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
     .sidebar-footer {
-      padding: 0.65rem 1.2rem 0.9rem;
+      padding: 0.55rem 1.1rem 0.8rem;
       border-top: 1px solid var(--stroke);
-      font-size: 0.68rem;
+      font-size: 0.66rem;
       color: #64748b;
       flex-shrink: 0;
     }
     .sidebar-footer a { color: var(--cyan); text-decoration: none; }
     .sidebar-footer a:hover { text-decoration: underline; }
 
-    /* Map */
     .map-wrap { position: relative; height: 100%; }
     #map { height: 100%; width: 100%; }
 
@@ -293,17 +443,11 @@
       padding: 0.4rem 0.85rem;
       border-radius: 999px;
       pointer-events: none;
-      opacity: 1;
       transition: opacity 0.6s ease;
     }
     .hint.hide { opacity: 0; }
 
-    /* Markers */
-    .marker {
-      width: 40px;
-      height: 40px;
-      cursor: pointer;
-    }
+    .marker { width: 40px; height: 40px; cursor: pointer; }
     .marker-inner {
       width: 36px;
       height: 36px;
@@ -322,7 +466,6 @@
     .marker.samhain .marker-inner { background: linear-gradient(145deg, #fb923c, #ea580c); }
     .marker.christian .marker-inner { background: linear-gradient(145deg, #4ade80, #16a34a); }
     .marker.modern .marker-inner { background: linear-gradient(145deg, #c084fc, #7c3aed); }
-
     .marker-pulse {
       position: absolute;
       inset: -4px;
@@ -338,7 +481,6 @@
       100% { transform: scale(1.7); opacity: 0; }
     }
 
-    /* Popup */
     .maplibregl-popup-content {
       background: var(--panel-2) !important;
       color: var(--ink);
@@ -383,20 +525,44 @@
         grid-template-rows: 46vh 54vh;
       }
       .sidebar { border-right: none; border-bottom: 1px solid var(--stroke); }
-      .sidebar-header h1 { font-size: 1.3rem; }
+      .sidebar-header h1 { font-size: 1.25rem; }
       .hint { display: none; }
+      .splash h1 { font-size: 1.75rem; }
     }
   </style>
 </head>
 <body>
+  <!-- SPLASH -->
+  <div class="splash" id="splash">
+    <div class="splash-kicker">Interactive Storymap</div>
+    <h1>The Night Between Worlds</h1>
+    <p class="splash-lead">
+      Halloween is often told as pure pagan survival or pure commercial fun.
+      The longer story is more layered — and more Christian than many people realize.
+    </p>
+    <div class="splash-stress">
+      <strong>Christian toe-hold:</strong> For centuries the season has included
+      <strong>All Saints’ Day</strong>, <strong>All Souls’ Day</strong>, church vigils,
+      prayers for the dead, souling, and cemetery remembrance. Folk fire and modern
+      costumes grew <em>alongside</em> that sacred calendar — not only instead of it.
+    </div>
+    <button class="splash-btn" id="splashStart" type="button">Enter the story →</button>
+    <p class="splash-hint">Use chapters, map layers, and ← → keys · optional ambient sound inside</p>
+  </div>
+
   <div class="particles" id="particles" aria-hidden="true"></div>
 
   <div class="app">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="kicker">Interactive Storymap</div>
+        <div class="kicker">Halloween History</div>
         <h1>The Night Between Worlds</h1>
-        <p class="subtitle">Follow Halloween across centuries — from Celtic bonfires to global October nights. Click a chapter or use the arrows.</p>
+        <p class="subtitle">Samhain fires, Christian Allhallowtide, and the modern night — told as one continuous season, not a simple replacement story.</p>
+      </div>
+
+      <div class="toolbar">
+        <button class="audio-btn" id="audioBtn" type="button" title="Toggle soft ambient tone">🔊 Ambient off</button>
+        <span class="toolbar-note">Soft generated drone — no track download</span>
       </div>
 
       <div class="progress-wrap">
@@ -415,7 +581,7 @@
       </div>
 
       <div class="sidebar-footer">
-        Drawing on Hutton, Rogers, Skal, Brandes & others ·
+        Drawing on Hutton, Rogers, Skal, Brandes & church histories ·
         <a href="https://spatialytics.space" target="_blank" rel="noopener">Spatialytics</a>
       </div>
     </aside>
@@ -427,72 +593,90 @@
         <button class="chip on modern" data-layer="modern" type="button">🎃 Modern / Global</button>
       </div>
       <div id="map"></div>
-      <div class="hint" id="hint">Click chapters · toggle layers · press ← →</div>
+      <div class="hint" id="hint">Chapters fly the map · green markers = Christian thread · ← → to step</div>
     </div>
   </div>
 
   <script>
-    // ========== STORY DATA ==========
+    // ========== STORY (Christian thread stressed) ==========
     const CHAPTERS = [
       {
         id: "origins",
         era: "c. 500 BCE – 400 CE",
         title: "Samhain’s Fires",
-        summary: "At summer’s end, Celtic communities lit great fires and stepped carefully between worlds.",
-        story: "In early Ireland and neighboring Celtic lands, <strong>Samhain</strong> marked the close of harvest and the turn toward winter. Bonfires rose on hills. Livestock was sorted. Stories spoke of a thinner veil between the living and the dead. People wore disguises, left offerings, and practiced forms of divination — not as costume party, but as seasonal survival and sacred caution.",
+        summary: "Celtic communities marked summer’s end with fire, harvest, and a sense of thin thresholds — the seasonal ground later seasons would build on.",
+        story: "In early Ireland and neighboring Celtic lands, <strong>Samhain</strong> closed the harvest and opened winter. Bonfires, livestock rites, and stories of a permeable boundary between living and dead shaped the emotional weather of late autumn. This is the folk deep background — real, important, and not the whole of what Halloween became.",
+        christianCallout: "What comes next is not a simple ‘pagan holiday stolen by the Church.’ It is a long negotiation: Christian calendar, prayer for the dead, and local custom sharing the same darkening weeks.",
+        plate: { class: "samhain", icons: "🔥 🌑 🍂", caption: "Seasonal hinge: fire, harvest’s end, threshold night" },
         center: [-7.5, 53.5],
         zoom: 5.8,
-        highlight: ["ireland-samhain"]
+        highlight: ["ireland-samhain"],
+        christianHeavy: false
       },
       {
         id: "christian",
         era: "600 – 1000 CE",
         title: "Allhallowtide Arrives",
-        summary: "The Church gave the season a new calendar — saints, souls, and vigils on the edge of November.",
-        story: "As Christianity spread, the Church did not simply erase autumn rites. It <strong>reframed</strong> them. All Saints’ Day (1 November) and later All Souls’ Day created Allhallowtide — a formal season of remembrance. The night before became All Hallows’ Eve. In Rome the calendar was set; in local churches, candles and prayers for the dead took root beside older seasonal habits.",
+        summary: "The Church set a universal feast of All Saints and, with All Souls, gave the season a Christian spine of holy memory.",
+        story: "As Christianity spread, the Church gave late autumn a formal sacred structure. <strong>All Saints’ Day</strong> (1 November) and later <strong>All Souls’ Day</strong> created <strong>Allhallowtide</strong> — a season focused on the saints in glory and the faithful departed. The night before became <strong>All Hallows’ Eve</strong>. In Rome the calendar was clarified; in local churches, candles, vigils, and Masses for the dead took root. This is the Christian toe-hold — and more than a toe-hold: for many communities it became the main meaning of the season.",
+        christianCallout: "Allhallowtide is not a footnote. It is a deliberate liturgical answer to human memory of the dead: pray, remember, hope. Halloween’s name itself — All Hallows’ Eve — is a Christian name.",
+        plate: { class: "christian", icons: "✝ 🕯️ ⛪", caption: "All Saints · All Souls · vigils and prayer for the dead" },
         center: [12.5, 42],
         zoom: 4.5,
-        highlight: ["rome-saints"]
+        highlight: ["rome-saints"],
+        christianHeavy: true
       },
       {
         id: "medieval",
         era: "1000 – 1500",
-        title: "Medieval Mixing",
-        summary: "Souling, guising, church bells, and turnip lanterns braided sacred duty with folk custom.",
-        story: "In medieval Britain, the season became a <strong>blend</strong>. ‘Souling’ sent people door to door offering prayers for the dead in exchange for soul cakes. Guising and mumming brought disguises into the streets. Hollowed turnips — the ancestors of jack-o’-lanterns — glowed in windows. Sacred and secular were not clean opposites; they shared the same long autumn night.",
+        title: "Sacred & Folk Entwined",
+        summary: "Souling, church bells, and Masses lived beside guising and lanterns — Christian duty and folk custom on the same threshold.",
+        story: "In medieval Britain the season was a <strong>braid</strong>, not a replacement. <strong>Souling</strong> sent people door to door offering prayers for the dead in exchange for soul cakes — explicitly Christian intercession. Church bells and Allhallowtide liturgies marked the days. At the same time, guising and hollowed turnip lanterns kept folk energy in the streets. Sacred obligation and neighborhood custom met at the same doors.",
+        christianCallout: "Souling is a clear Christian practice: prayer for souls, alms, and remembrance. When we only tell the ‘pagan origin’ story, we erase this living medieval Christianity.",
+        plate: { class: "blend", icons: "⛪ 🍞 🎃", caption: "Soul cakes & prayers · lanterns & guising — same night" },
         center: [-2, 52.8],
         zoom: 5.5,
-        highlight: ["britain-souling", "britain-guising"]
+        highlight: ["britain-souling", "britain-guising"],
+        christianHeavy: true
       },
       {
         id: "early-modern",
         era: "1500 – 1800",
-        title: "Pressure & Persistence",
-        summary: "Reformation critiques reshaped the calendar, but fire, mischief, and folk games endured.",
-        story: "Protestant reformers often viewed Halloween customs as ‘popish’ or superstitious. In some places church observance narrowed. Yet <strong>folk practice persisted</strong>: bonfires, apple games, fortune-telling, and seasonal mischief continued in Britain and Ireland. The holiday’s double nature — sacred memory and playful disorder — only grew more visible.",
+        title: "Reformation Pressure, Enduring Memory",
+        summary: "Reformers challenged ‘popish’ rites; Catholic and folk memory of the dead still shaped the calendar.",
+        story: "Protestant reformers often treated Halloween customs and some Allhallowtide practices as superstition or residual Catholicism. In places the public face of the season narrowed. Yet <strong>Catholic communities kept the feasts</strong>, and folk practices — fire, games, mischief — persisted across Britain and Ireland. The Christian thread did not vanish; it was contested, localized, and sometimes pushed into quieter forms of remembrance.",
+        christianCallout: "Even where Reformation critique was strong, the older Christian instinct — that the dead are not disposable and the calendar should make room for them — did not disappear overnight.",
+        plate: { class: "christian", icons: "✝ 📜 🔥", caption: "Contested calendar · retained feasts · stubborn folk night" },
         center: [-4, 54],
         zoom: 5,
-        highlight: ["britain-guising", "ireland-samhain"]
+        highlight: ["ireland-christian", "britain-guising"],
+        christianHeavy: true
       },
       {
         id: "america",
         era: "1800 – 1950",
         title: "Across the Atlantic",
-        summary: "Irish and Scottish immigrants carried the night west. Pumpkins replaced turnips; neighborhoods rewrote the script.",
-        story: "Nineteenth-century immigration brought Halloween to North America in force. In New England and beyond, communities adapted old customs to new streets. The <strong>pumpkin</strong> — larger, softer, local — replaced the turnip lantern. By the early–mid twentieth century, organized parties and eventually <em>trick-or-treating</em> turned a night of mixed sacred-folk meaning into a distinctive American childhood ritual.",
+        summary: "Immigrants carried both folk Halloween and Christian November feasts. Pumpkins rose; parishes kept saints and souls.",
+        story: "Irish and Scottish migration brought autumn customs to North America. The <strong>pumpkin</strong> replaced the turnip. Community parties and, later, trick-or-treating reshaped the public night. At the same time, Catholic and other Christian communities continued <strong>All Saints’ and All Souls’</strong> observance — Masses, cemetery visits, prayers for the dead. The American story is not only commercialization; it is also parish life beside the porch light.",
+        christianCallout: "Trunk-or-treat, harvest festivals, and All Souls’ remembrances in churches are part of the same long Christian negotiation with the season — still visible today.",
+        plate: { class: "modern", icons: "🎃 🍬 ✝", caption: "Immigrant folk night · parish Allhallowtide · new American script" },
         center: [-74, 41],
         zoom: 5,
-        highlight: ["boston-modern", "nyc-modern"]
+        highlight: ["boston-modern", "nyc-modern"],
+        christianHeavy: false
       },
       {
         id: "global",
         era: "1950 – Present",
-        title: "Global October Nights",
-        summary: "Media and commerce spread one version of Halloween worldwide — while older traditions kept living beside it.",
-        story: "After mid-century, film, television, and retail exported a commercial Halloween of costumes, candy, and haunted attractions. Meanwhile <strong>Día de los Muertos</strong> in Mexico continued as a distinct, layered tradition of Indigenous remembrance and Catholic All Saints/All Souls practice. Today the calendar holds many ‘October nights’ at once: folk memory, Christian observance, and global pop culture sharing the same darkening season.",
+        title: "Many October Nights",
+        summary: "Global pop-Halloween spreads — while Christian remembrance and traditions like Día de los Muertos keep sacred memory alive.",
+        story: "Media and retail exported a commercial Halloween of costumes and candy worldwide. Yet the Christian thread continues: All Saints’ and All Souls’ liturgies, prayers for the dead, and local church alternatives to pure spectacle. <strong>Día de los Muertos</strong> in Mexico stands as a powerful related tradition — Indigenous remembrance braided with Catholic All Saints/All Souls practice. The season still holds more than one truth at once.",
+        christianCallout: "To stress only ‘pagan roots’ or only ‘candy capitalism’ is to miss the Christian middle: a calendar that still asks the living to remember the dead before God.",
+        plate: { class: "blend", icons: "💀 🕯️ 🎃", caption: "Global costume night · living Christian & familial remembrance" },
         center: [-40, 25],
         zoom: 2.4,
-        highlight: ["mexico-dotd", "japan-modern", "nyc-modern"]
+        highlight: ["mexico-dotd", "nyc-modern"],
+        christianHeavy: true
       }
     ];
 
@@ -502,8 +686,8 @@
         coords: [-6.2603, 53.3498],
         layer: "samhain",
         emoji: "🔥",
-        title: "Ireland — Heart of Samhain",
-        body: "Early Irish sources and later folklore place Samhain at the hinge of the year: harvest complete, winter ahead, and a night when boundaries felt permeable. Great fires and communal rites left a long shadow on Halloween’s imagery.",
+        title: "Ireland — Samhain Ground",
+        body: "Early Irish seasonal practice around Samhain — fire, harvest’s end, threshold anxiety — forms the folk deep background. Later Christian Allhallowtide would occupy the same weeks of the year.",
         source: "Hutton, Stations of the Sun"
       },
       {
@@ -512,7 +696,7 @@
         layer: "samhain",
         emoji: "🔥",
         title: "Scotland — Fire & Guising",
-        body: "Scottish and northern British communities kept strong seasonal fire customs and guising traditions — disguise as protection, play, and threshold ritual.",
+        body: "Scottish fire customs and guising kept folk seasonal energy strong. These practices traveled with migrants and fed what Americans later called Halloween.",
         source: "Hutton; Rogers"
       },
       {
@@ -521,8 +705,8 @@
         layer: "christian",
         emoji: "✝",
         title: "Rome — All Saints’ Day",
-        body: "The Roman calendar fixed a universal celebration of All Saints on 1 November. That decision helped turn the surrounding nights into Allhallowtide — a formal Christian season of holy memory.",
-        source: "Church histories; Butler"
+        body: "The Roman calendar’s emphasis on a universal All Saints’ feast (associated with the 8th century development of 1 November) helped lock in Allhallowtide. This is institutional Christianity giving the season a sacred spine.",
+        source: "Church histories"
       },
       {
         id: "ireland-christian",
@@ -530,7 +714,7 @@
         layer: "christian",
         emoji: "🕯️",
         title: "Ireland — All Hallows’ Eve",
-        body: "As the Church’s calendar took hold, the night before All Saints’ became All Hallows’ Eve. Vigils and prayers for the dead stood alongside — not always against — older seasonal habits.",
+        body: "The very name Halloween — All Hallows’ Eve — is Christian. Irish Christian practice held vigils and prayers for saints and souls in the same seasonal window as older folk custom.",
         source: "Santino; Hutton"
       },
       {
@@ -539,7 +723,7 @@
         layer: "christian",
         emoji: "⛪",
         title: "England — Souling",
-        body: "Souling sent Christians door to door with prayers for the dead in exchange for soul cakes. Sacred obligation and neighborhood exchange met on the same threshold.",
+        body: "Souling: door-to-door prayer for the dead in exchange for soul cakes. Explicit Christian intercession and charity — not a pagan leftover, but medieval Christian practice.",
         source: "Hutton, 1996"
       },
       {
@@ -548,7 +732,7 @@
         layer: "samhain",
         emoji: "🎃",
         title: "Britain — Guising & Lanterns",
-        body: "Guising, mumming, and hollowed turnip lanterns kept folk energy in the season. These are the direct ancestors of costumes and jack-o’-lanterns.",
+        body: "Guising and turnip lanterns kept folk play in the season. They shared streets and calendars with souling and church observance — a mixed night, not a single origin.",
         source: "Rogers, 2002"
       },
       {
@@ -557,7 +741,7 @@
         layer: "modern",
         emoji: "🎃",
         title: "New England — Immigrant Roots",
-        body: "Irish and Scottish communities in the Northeast helped plant Halloween on American soil. Local parties and pranks slowly organized into shared neighborhood custom.",
+        body: "Irish and Scottish communities planted Halloween customs in the Northeast. Parish life and November Christian feasts arrived in the same migrations.",
         source: "Skal, 2002"
       },
       {
@@ -565,9 +749,9 @@
         coords: [-74.006, 40.7128],
         layer: "modern",
         emoji: "🍬",
-        title: "United States — Trick-or-Treat Era",
-        body: "By mid-century, trick-or-treating, commercial costumes, and candy defined a mass American Halloween — soon amplified by film, television, and retail worldwide.",
-        source: "Skal; cultural histories"
+        title: "United States — Costume & Parish",
+        body: "Trick-or-treat and commercial Halloween grew fast — while churches continued All Saints/All Souls and, later, alternatives like trunk-or-treat and harvest festivals.",
+        source: "Skal; parish practice"
       },
       {
         id: "mexico-dotd",
@@ -575,7 +759,7 @@
         layer: "modern",
         emoji: "💀",
         title: "Mexico — Día de los Muertos",
-        body: "A living tradition of family remembrance: ofrendas, marigolds, cemetery visits. Indigenous and Catholic threads braid into something related to — but not the same as — commercial Halloween.",
+        body: "A living tradition of family remembrance braided with Catholic All Saints and All Souls. Not ‘Mexican Halloween’ — a related, distinct Christian-and-Indigenous season of the dead.",
         source: "Brandes, 2006"
       },
       {
@@ -583,15 +767,20 @@
         coords: [139.6503, 35.6762],
         layer: "modern",
         emoji: "🎃",
-        title: "Japan & the Global Wave",
-        body: "In places without deep folk Halloween roots, media and commerce built a new October festival of costumes and spectacle — proof of how portable the modern layer has become.",
-        source: "Contemporary cultural reporting"
+        title: "Japan & Global Pop-Halloween",
+        body: "Commercial Halloween spread through media and retail even where folk or parish Allhallowtide roots were thin — one more layer in a crowded global October.",
+        source: "Contemporary reporting"
       }
     ];
 
+    // ========== SPLASH ==========
+    document.getElementById("splashStart").addEventListener("click", () => {
+      document.getElementById("splash").classList.add("hide");
+    });
+
     // ========== PARTICLES ==========
     const particlesEl = document.getElementById("particles");
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < 16; i++) {
       const p = document.createElement("span");
       p.className = "particle";
       p.style.left = Math.random() * 100 + "%";
@@ -600,6 +789,52 @@
       p.style.width = p.style.height = 2 + Math.random() * 3 + "px";
       particlesEl.appendChild(p);
     }
+
+    // ========== AMBIENT AUDIO (Web Audio drone) ==========
+    let audioCtx = null;
+    let audioNodes = [];
+    let audioOn = false;
+
+    function startAmbient() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+
+      const master = audioCtx.createGain();
+      master.gain.value = 0.035;
+      master.connect(audioCtx.destination);
+
+      // Soft low drone + faint higher partial
+      [55, 82.5, 110].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = i === 0 ? "sine" : "triangle";
+        osc.frequency.value = freq;
+        g.gain.value = i === 0 ? 0.9 : 0.25;
+        osc.connect(g);
+        g.connect(master);
+        osc.start();
+        audioNodes.push(osc, g);
+      });
+      audioNodes.push(master);
+      audioOn = true;
+      document.getElementById("audioBtn").classList.add("on");
+      document.getElementById("audioBtn").textContent = "🔊 Ambient on";
+    }
+
+    function stopAmbient() {
+      audioNodes.forEach((n) => {
+        try { if (n.stop) n.stop(); n.disconnect(); } catch (_) {}
+      });
+      audioNodes = [];
+      audioOn = false;
+      document.getElementById("audioBtn").classList.remove("on");
+      document.getElementById("audioBtn").textContent = "🔊 Ambient off";
+    }
+
+    document.getElementById("audioBtn").addEventListener("click", () => {
+      if (audioOn) stopAmbient();
+      else startAmbient();
+    });
 
     // ========== MAP ==========
     const map = new maplibregl.Map({
@@ -618,10 +853,7 @@
     function createMarkerEl(place) {
       const el = document.createElement("div");
       el.className = `marker ${place.layer}`;
-      el.innerHTML = `
-        <div class="marker-pulse"></div>
-        <div class="marker-inner">${place.emoji}</div>
-      `;
+      el.innerHTML = `<div class="marker-pulse"></div><div class="marker-inner">${place.emoji}</div>`;
       el.title = place.title;
       el.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -638,15 +870,12 @@
           .addTo(map);
         markers[place.id] = { marker, place, el };
       });
-      goToChapter(0, false);
     });
 
     function setLayerVisible(layer, on) {
       layerVisible[layer] = on;
-      Object.values(markers).forEach(({ marker, place, el }) => {
-        if (place.layer === layer) {
-          el.style.display = on ? "block" : "none";
-        }
+      Object.values(markers).forEach(({ place, el }) => {
+        if (place.layer === layer) el.style.display = on ? "block" : "none";
       });
     }
 
@@ -682,13 +911,20 @@
 
     CHAPTERS.forEach((ch, i) => {
       const card = document.createElement("div");
-      card.className = "chapter-card" + (i === 0 ? " active" : "");
+      card.className = "chapter-card" + (ch.christianHeavy ? " christian-heavy" : "") + (i === 0 ? " active" : "");
       card.dataset.index = i;
       card.innerHTML = `
         <div class="era">${ch.era}</div>
         <h3>${ch.title}</h3>
         <p>${ch.summary}</p>
-        <div class="story-expand">${ch.story}</div>
+        <div class="plate">
+          <div class="plate-visual ${ch.plate.class}">${ch.plate.icons}</div>
+          <div class="plate-caption">${ch.plate.caption}</div>
+        </div>
+        <div class="story-expand">
+          ${ch.story}
+          <div class="christian-callout">${ch.christianCallout}</div>
+        </div>
       `;
       card.addEventListener("click", () => goToChapter(i));
       storyPanel.appendChild(card);
@@ -702,17 +938,15 @@
         el.classList.toggle("active", i === chapterIndex);
       });
 
-      // Scroll active card into view
       const activeCard = storyPanel.querySelector(`.chapter-card[data-index="${chapterIndex}"]`);
       if (activeCard) activeCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
       document.getElementById("progressLabel").textContent = `Chapter ${chapterIndex + 1} of ${CHAPTERS.length}`;
       document.getElementById("progressFill").style.width = `${((chapterIndex + 1) / CHAPTERS.length) * 100}%`;
-
       document.getElementById("btnPrev").disabled = chapterIndex === 0;
       document.getElementById("btnNext").disabled = chapterIndex === CHAPTERS.length - 1;
 
-      if (map.isStyleLoaded && map.isStyleLoaded()) {
+      if (map.loaded()) {
         map.flyTo({
           center: ch.center,
           zoom: ch.zoom,
@@ -724,7 +958,6 @@
         }
       }
 
-      // Hide hint after first interaction
       document.getElementById("hint").classList.add("hide");
     }
 
@@ -732,6 +965,7 @@
     document.getElementById("btnNext").addEventListener("click", () => goToChapter(chapterIndex + 1));
 
     window.addEventListener("keydown", (e) => {
+      if (document.getElementById("splash").classList.contains("hide") === false) return;
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         e.preventDefault();
         goToChapter(chapterIndex + 1);
@@ -740,6 +974,9 @@
         goToChapter(chapterIndex - 1);
       }
     });
+
+    // Start map at chapter 0 once ready
+    map.on("load", () => goToChapter(0, false));
   </script>
 </body>
 </html>
