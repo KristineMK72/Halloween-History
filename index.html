@@ -3,32 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Halloween History — Interactive Storymap</title>
-  <meta name="description" content="Explore the roots of Halloween: Samhain, Allhallowtide, medieval traditions, Irish-American reinvention, and global celebrations." />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <title>Halloween History — The Night Between Worlds</title>
+  <meta name="description" content="An interactive storymap of Halloween: Samhain fires, Allhallowtide, medieval customs, Irish-American reinvention, and global October nights." />
+  <meta name="theme-color" content="#020617" />
+
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet" />
+
   <style>
     :root {
       --bg: #020617;
-      --panel: #0f172a;
-      --panel-2: #1e293b;
-      --ink: #f1f5f9;
+      --panel: #0b1220;
+      --panel-2: #111827;
+      --ink: #f8fafc;
       --muted: #94a3b8;
       --orange: #f97316;
       --amber: #fbbf24;
-      --purple: #a855f7;
-      --green: #22c55e;
+      --purple: #c084fc;
+      --green: #4ade80;
       --cyan: #22d3ee;
       --stroke: rgba(255,255,255,0.1);
+      --glow-orange: 0 0 24px rgba(249,115,22,0.45);
     }
 
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
     body {
-      font-family: Inter, system-ui, -apple-system, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       background: var(--bg);
       color: var(--ink);
       overflow: hidden;
@@ -36,182 +41,324 @@
 
     .app {
       display: grid;
-      grid-template-columns: minmax(320px, 400px) 1fr;
+      grid-template-columns: minmax(340px, 420px) 1fr;
       height: 100vh;
+      position: relative;
+    }
+
+    /* Firefly particles */
+    .particles {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--amber);
+      opacity: 0;
+      animation: floatUp linear infinite;
+      box-shadow: 0 0 6px var(--amber);
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) scale(0.4); opacity: 0; }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.5; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
     }
 
     /* Sidebar */
     .sidebar {
-      background: linear-gradient(180deg, var(--panel) 0%, #0b1220 100%);
+      background: linear-gradient(165deg, #0b1220 0%, #070d18 50%, #0a1628 100%);
       border-right: 1px solid var(--stroke);
       display: flex;
       flex-direction: column;
+      z-index: 10;
+      position: relative;
       overflow: hidden;
+    }
+    .sidebar::before {
+      content: "";
+      position: absolute;
+      top: -80px; left: -60px;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(249,115,22,0.12), transparent 70%);
+      pointer-events: none;
     }
 
     .sidebar-header {
-      padding: 1.25rem 1.25rem 0.75rem;
+      padding: 1.35rem 1.35rem 1rem;
       border-bottom: 1px solid var(--stroke);
       flex-shrink: 0;
+      position: relative;
     }
-
     .kicker {
-      font-size: 0.7rem;
-      letter-spacing: 0.18em;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--orange);
-      font-weight: 600;
+      font-weight: 700;
     }
-
     .sidebar-header h1 {
-      margin: 0.35rem 0 0.25rem;
-      font-size: 1.55rem;
+      margin: 0.4rem 0 0.35rem;
+      font-size: 1.65rem;
       font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.15;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 30%, var(--amber));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-
-    .sidebar-header p {
+    .sidebar-header .subtitle {
       margin: 0;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       color: var(--muted);
       line-height: 1.45;
     }
 
-    .chapters {
+    /* Progress */
+    .progress-wrap {
+      padding: 0.75rem 1.35rem 0.25rem;
+      flex-shrink: 0;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .progress-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--orange), var(--amber));
+      border-radius: 99px;
+      transition: width 0.5s ease;
+      box-shadow: var(--glow-orange);
+    }
+
+    .story-panel {
       flex: 1;
       overflow-y: auto;
-      padding: 0.75rem;
+      padding: 0.85rem 1.1rem 1rem;
     }
 
-    .chapter {
+    .chapter-card {
       border: 1px solid var(--stroke);
-      border-radius: 12px;
-      padding: 0.9rem 1rem;
-      margin-bottom: 0.6rem;
+      border-radius: 14px;
+      padding: 0.95rem 1.05rem;
+      margin-bottom: 0.65rem;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
       background: rgba(255,255,255,0.02);
+      position: relative;
     }
-
-    .chapter:hover {
-      border-color: rgba(249, 115, 22, 0.4);
-      background: rgba(249, 115, 22, 0.06);
+    .chapter-card:hover {
+      border-color: rgba(249,115,22,0.45);
+      background: rgba(249,115,22,0.06);
+      transform: translateX(3px);
     }
-
-    .chapter.active {
+    .chapter-card.active {
       border-color: var(--orange);
-      background: rgba(249, 115, 22, 0.12);
-      box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25);
+      background: linear-gradient(135deg, rgba(249,115,22,0.14), rgba(251,191,36,0.05));
+      box-shadow: 0 0 0 1px rgba(249,115,22,0.3), 0 12px 40px -20px rgba(249,115,22,0.4);
     }
-
-    .chapter .era {
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
+    .chapter-card .era {
+      font-size: 0.66rem;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--amber);
-      font-weight: 600;
-    }
-
-    .chapter h3 {
-      margin: 0.2rem 0 0.35rem;
-      font-size: 1rem;
       font-weight: 700;
     }
-
-    .chapter p {
+    .chapter-card h3 {
+      margin: 0.25rem 0 0.4rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .chapter-card p {
       margin: 0;
       font-size: 0.8rem;
       color: var(--muted);
-      line-height: 1.45;
+      line-height: 1.5;
+    }
+    .chapter-card .story-expand {
+      display: none;
+      margin-top: 0.65rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid var(--stroke);
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+    .chapter-card.active .story-expand {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.5rem 1.1rem 0.85rem;
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      flex: 1;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.04);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover:not(:disabled) {
+      border-color: var(--orange);
+      background: rgba(249,115,22,0.12);
+    }
+    .nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
     }
 
     .sidebar-footer {
-      padding: 0.75rem 1.25rem 1.1rem;
+      padding: 0.65rem 1.2rem 0.9rem;
       border-top: 1px solid var(--stroke);
-      font-size: 0.72rem;
-      color: var(--muted);
+      font-size: 0.68rem;
+      color: #64748b;
       flex-shrink: 0;
     }
-
     .sidebar-footer a { color: var(--cyan); text-decoration: none; }
     .sidebar-footer a:hover { text-decoration: underline; }
 
-    /* Map panel */
-    .map-wrap {
-      position: relative;
-      height: 100%;
-    }
-
-    #map { height: 100%; width: 100%; background: #0a0f1a; }
+    /* Map */
+    .map-wrap { position: relative; height: 100%; }
+    #map { height: 100%; width: 100%; }
 
     .map-controls {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 1000;
+      top: 14px;
+      left: 14px;
+      z-index: 5;
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 7px;
     }
-
     .chip {
       border: 1px solid var(--stroke);
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(10px);
+      background: rgba(11, 18, 32, 0.9);
+      backdrop-filter: blur(12px);
       color: var(--ink);
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: 600;
-      padding: 0.4rem 0.7rem;
+      padding: 0.42rem 0.75rem;
       border-radius: 999px;
       cursor: pointer;
       transition: all 0.15s ease;
       font-family: inherit;
     }
+    .chip:hover { border-color: rgba(255,255,255,0.28); }
+    .chip.on.samhain { background: rgba(249,115,22,0.92); color: #1c0900; border-color: transparent; }
+    .chip.on.christian { background: rgba(74,222,128,0.9); color: #052e16; border-color: transparent; }
+    .chip.on.modern { background: rgba(192,132,252,0.92); color: #2e1065; border-color: transparent; }
 
-    .chip:hover { border-color: rgba(255,255,255,0.25); }
-    .chip.on {
-      border-color: transparent;
+    .hint {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      background: rgba(11,18,32,0.88);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(10px);
+      font-size: 0.72rem;
+      color: var(--muted);
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.6s ease;
     }
-    .chip.on.samhain { background: rgba(249, 115, 22, 0.9); color: #1a0a00; }
-    .chip.on.christian { background: rgba(34, 197, 94, 0.9); color: #052e16; }
-    .chip.on.modern { background: rgba(168, 85, 247, 0.9); color: #1e0533; }
+    .hint.hide { opacity: 0; }
 
-    /* Custom markers */
-    .pin {
-      width: 34px;
-      height: 34px;
+    /* Markers */
+    .marker {
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+    }
+    .marker-inner {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      border: 2px solid rgba(255,255,255,0.85);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+      font-size: 17px;
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      position: relative;
+      z-index: 2;
+      transition: transform 0.2s ease;
     }
-    .pin.samhain { background: linear-gradient(135deg, #f97316, #ea580c); }
-    .pin.christian { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .pin.modern { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .marker:hover .marker-inner { transform: scale(1.12); }
+    .marker.samhain .marker-inner { background: linear-gradient(145deg, #fb923c, #ea580c); }
+    .marker.christian .marker-inner { background: linear-gradient(145deg, #4ade80, #16a34a); }
+    .marker.modern .marker-inner { background: linear-gradient(145deg, #c084fc, #7c3aed); }
 
-    /* Popups */
-    .leaflet-popup-content-wrapper {
-      background: var(--panel-2);
+    .marker-pulse {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      z-index: 1;
+      animation: pulse 2.2s ease-out infinite;
+    }
+    .marker.samhain .marker-pulse { border: 2px solid rgba(249,115,22,0.7); }
+    .marker.christian .marker-pulse { border: 2px solid rgba(74,222,128,0.7); }
+    .marker.modern .marker-pulse { border: 2px solid rgba(192,132,252,0.7); }
+    @keyframes pulse {
+      0%   { transform: scale(0.85); opacity: 0.85; }
+      100% { transform: scale(1.7); opacity: 0; }
+    }
+
+    /* Popup */
+    .maplibregl-popup-content {
+      background: var(--panel-2) !important;
       color: var(--ink);
-      border-radius: 12px;
+      border-radius: 14px !important;
       border: 1px solid var(--stroke);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-      padding: 0;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.55) !important;
+      padding: 0 !important;
+      min-width: 240px;
+      max-width: 300px;
     }
-    .leaflet-popup-content {
-      margin: 0;
-      min-width: 220px;
-      max-width: 280px;
+    .maplibregl-popup-tip { border-top-color: var(--panel-2) !important; border-bottom-color: var(--panel-2) !important; }
+    .maplibregl-popup-close-button {
+      color: var(--muted) !important;
+      font-size: 18px !important;
+      padding: 6px 10px !important;
     }
-    .leaflet-popup-tip { background: var(--panel-2); }
-    .popup-inner { padding: 12px 14px; }
+    .popup-inner { padding: 14px 16px; }
     .popup-tag {
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       font-weight: 700;
       margin-bottom: 4px;
@@ -219,321 +366,379 @@
     .popup-tag.samhain { color: var(--orange); }
     .popup-tag.christian { color: var(--green); }
     .popup-tag.modern { color: var(--purple); }
-    .popup-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      margin-bottom: 6px;
-      line-height: 1.25;
-    }
-    .popup-body {
-      font-size: 0.8rem;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-    .popup-source {
-      margin-top: 8px;
-      font-size: 0.7rem;
-      color: #64748b;
-      font-style: italic;
-    }
+    .popup-title { font-weight: 700; font-size: 0.98rem; margin-bottom: 6px; line-height: 1.25; }
+    .popup-body { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    .popup-source { margin-top: 8px; font-size: 0.68rem; color: #64748b; font-style: italic; }
 
-    .leaflet-control-attribution {
-      background: rgba(15,23,42,0.8) !important;
+    .maplibregl-ctrl-attrib {
+      background: rgba(11,18,32,0.8) !important;
       color: #64748b !important;
       font-size: 10px !important;
     }
-    .leaflet-control-attribution a { color: #94a3b8 !important; }
+    .maplibregl-ctrl-attrib a { color: #94a3b8 !important; }
 
-    /* Mobile */
-    @media (max-width: 800px) {
+    @media (max-width: 820px) {
       .app {
         grid-template-columns: 1fr;
-        grid-template-rows: 42vh 58vh;
+        grid-template-rows: 46vh 54vh;
       }
       .sidebar { border-right: none; border-bottom: 1px solid var(--stroke); }
-      .sidebar-header h1 { font-size: 1.25rem; }
-      .chapters { padding: 0.5rem; }
-      .chapter { padding: 0.7rem 0.8rem; }
+      .sidebar-header h1 { font-size: 1.3rem; }
+      .hint { display: none; }
     }
   </style>
 </head>
 <body>
+  <div class="particles" id="particles" aria-hidden="true"></div>
+
   <div class="app">
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="kicker">Interactive Storymap</div>
-        <h1>Halloween History</h1>
-        <p>From Celtic Samhain to global October nights — click a chapter to explore the places that shaped the holiday.</p>
+        <h1>The Night Between Worlds</h1>
+        <p class="subtitle">Follow Halloween across centuries — from Celtic bonfires to global October nights. Click a chapter or use the arrows.</p>
       </div>
 
-      <div class="chapters" id="chapters">
-        <!-- filled by JS -->
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="progressLabel">Chapter 1 of 6</span>
+          <span>← → keys</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <div class="story-panel" id="storyPanel"></div>
+
+      <div class="nav-btns">
+        <button class="nav-btn" id="btnPrev" type="button">← Previous</button>
+        <button class="nav-btn" id="btnNext" type="button">Next →</button>
       </div>
 
       <div class="sidebar-footer">
-        Sources include Hutton, Rogers, Skal, Brandes & others. Built as a public explainer ·
+        Drawing on Hutton, Rogers, Skal, Brandes & others ·
         <a href="https://spatialytics.space" target="_blank" rel="noopener">Spatialytics</a>
       </div>
     </aside>
 
     <div class="map-wrap">
-      <div class="map-controls" id="layerChips">
-        <button class="chip on samhain" data-layer="samhain">🔥 Samhain / Folk</button>
-        <button class="chip on christian" data-layer="christian">✝ Christian</button>
-        <button class="chip on modern" data-layer="modern">🎃 Modern / Global</button>
+      <div class="map-controls">
+        <button class="chip on samhain" data-layer="samhain" type="button">🔥 Samhain / Folk</button>
+        <button class="chip on christian" data-layer="christian" type="button">✝ Christian</button>
+        <button class="chip on modern" data-layer="modern" type="button">🎃 Modern / Global</button>
       </div>
       <div id="map"></div>
+      <div class="hint" id="hint">Click chapters · toggle layers · press ← →</div>
     </div>
   </div>
 
   <script>
-    // ---------- Data ----------
+    // ========== STORY DATA ==========
     const CHAPTERS = [
       {
         id: "origins",
         era: "c. 500 BCE – 400 CE",
         title: "Samhain’s Fires",
-        summary: "Celtic Ireland and Britain marked the end of harvest with bonfires, open thresholds between worlds, and protective disguises.",
-        center: [53.4, -7.5],
-        zoom: 6,
-        highlight: ["ireland-samhain", "scotland-samhain"]
+        summary: "At summer’s end, Celtic communities lit great fires and stepped carefully between worlds.",
+        story: "In early Ireland and neighboring Celtic lands, <strong>Samhain</strong> marked the close of harvest and the turn toward winter. Bonfires rose on hills. Livestock was sorted. Stories spoke of a thinner veil between the living and the dead. People wore disguises, left offerings, and practiced forms of divination — not as costume party, but as seasonal survival and sacred caution.",
+        center: [-7.5, 53.5],
+        zoom: 5.8,
+        highlight: ["ireland-samhain"]
       },
       {
         id: "christian",
         era: "600 – 1000 CE",
-        title: "Christian Embrace",
-        summary: "The Church layered All Saints’ and All Souls’ onto the autumn season. Rome set the calendar; local churches kept vigils and prayers for the dead.",
-        center: [41.9, 12.5],
-        zoom: 5,
-        highlight: ["rome-saints", "ireland-christian"]
+        title: "Allhallowtide Arrives",
+        summary: "The Church gave the season a new calendar — saints, souls, and vigils on the edge of November.",
+        story: "As Christianity spread, the Church did not simply erase autumn rites. It <strong>reframed</strong> them. All Saints’ Day (1 November) and later All Souls’ Day created Allhallowtide — a formal season of remembrance. The night before became All Hallows’ Eve. In Rome the calendar was set; in local churches, candles and prayers for the dead took root beside older seasonal habits.",
+        center: [12.5, 42],
+        zoom: 4.5,
+        highlight: ["rome-saints"]
       },
       {
         id: "medieval",
         era: "1000 – 1500",
-        title: "Medieval Syncretism",
-        summary: "Souling, guising, church bells, and turnip lanterns mixed sacred duty with folk custom across the British Isles.",
-        center: [52.5, -2],
-        zoom: 6,
+        title: "Medieval Mixing",
+        summary: "Souling, guising, church bells, and turnip lanterns braided sacred duty with folk custom.",
+        story: "In medieval Britain, the season became a <strong>blend</strong>. ‘Souling’ sent people door to door offering prayers for the dead in exchange for soul cakes. Guising and mumming brought disguises into the streets. Hollowed turnips — the ancestors of jack-o’-lanterns — glowed in windows. Sacred and secular were not clean opposites; they shared the same long autumn night.",
+        center: [-2, 52.8],
+        zoom: 5.5,
         highlight: ["britain-souling", "britain-guising"]
       },
       {
         id: "early-modern",
         era: "1500 – 1800",
-        title: "Early Modern Shifts",
-        summary: "Reformation pressures reshaped the calendar in Protestant lands while folk games, mischief, and divination persisted.",
-        center: [54, -4],
+        title: "Pressure & Persistence",
+        summary: "Reformation critiques reshaped the calendar, but fire, mischief, and folk games endured.",
+        story: "Protestant reformers often viewed Halloween customs as ‘popish’ or superstitious. In some places church observance narrowed. Yet <strong>folk practice persisted</strong>: bonfires, apple games, fortune-telling, and seasonal mischief continued in Britain and Ireland. The holiday’s double nature — sacred memory and playful disorder — only grew more visible.",
+        center: [-4, 54],
         zoom: 5,
         highlight: ["britain-guising", "ireland-samhain"]
       },
       {
         id: "america",
         era: "1800 – 1950",
-        title: "Irish-American Reinvention",
-        summary: "Immigrants carried Halloween across the Atlantic. Pumpkins replaced turnips; trick-or-treating and community parties took root.",
-        center: [40.5, -75],
+        title: "Across the Atlantic",
+        summary: "Irish and Scottish immigrants carried the night west. Pumpkins replaced turnips; neighborhoods rewrote the script.",
+        story: "Nineteenth-century immigration brought Halloween to North America in force. In New England and beyond, communities adapted old customs to new streets. The <strong>pumpkin</strong> — larger, softer, local — replaced the turnip lantern. By the early–mid twentieth century, organized parties and eventually <em>trick-or-treating</em> turned a night of mixed sacred-folk meaning into a distinctive American childhood ritual.",
+        center: [-74, 41],
         zoom: 5,
-        highlight: ["nyc-modern", "boston-modern"]
+        highlight: ["boston-modern", "nyc-modern"]
       },
       {
         id: "global",
         era: "1950 – Present",
         title: "Global October Nights",
-        summary: "Commercial Halloween spread worldwide while older traditions — including Día de los Muertos — continued as living, layered practices.",
-        center: [25, -40],
-        zoom: 3,
-        highlight: ["mexico-dotd", "nyc-modern", "japan-modern"]
+        summary: "Media and commerce spread one version of Halloween worldwide — while older traditions kept living beside it.",
+        story: "After mid-century, film, television, and retail exported a commercial Halloween of costumes, candy, and haunted attractions. Meanwhile <strong>Día de los Muertos</strong> in Mexico continued as a distinct, layered tradition of Indigenous remembrance and Catholic All Saints/All Souls practice. Today the calendar holds many ‘October nights’ at once: folk memory, Christian observance, and global pop culture sharing the same darkening season.",
+        center: [-40, 25],
+        zoom: 2.4,
+        highlight: ["mexico-dotd", "japan-modern", "nyc-modern"]
       }
     ];
 
     const PLACES = [
       {
         id: "ireland-samhain",
-        coords: [53.3498, -6.2603],
+        coords: [-6.2603, 53.3498],
         layer: "samhain",
         emoji: "🔥",
         title: "Ireland — Heart of Samhain",
-        body: "In early Ireland the festival of Samhain marked summer’s end. Great bonfires, communal feasting, and a sense that the boundary between living and dead grew thin shaped later Halloween imagery.",
+        body: "Early Irish sources and later folklore place Samhain at the hinge of the year: harvest complete, winter ahead, and a night when boundaries felt permeable. Great fires and communal rites left a long shadow on Halloween’s imagery.",
         source: "Hutton, Stations of the Sun"
       },
       {
         id: "scotland-samhain",
-        coords: [56.4907, -4.2026],
+        coords: [-4.2026, 56.4907],
         layer: "samhain",
         emoji: "🔥",
-        title: "Scotland — Guising & Fire",
-        body: "Scottish and northern British communities kept strong fire customs and guising (disguise) traditions tied to the same seasonal turning point.",
+        title: "Scotland — Fire & Guising",
+        body: "Scottish and northern British communities kept strong seasonal fire customs and guising traditions — disguise as protection, play, and threshold ritual.",
         source: "Hutton; Rogers"
       },
       {
         id: "rome-saints",
-        coords: [41.9028, 12.4964],
+        coords: [12.4964, 41.9028],
         layer: "christian",
         emoji: "✝",
         title: "Rome — All Saints’ Day",
-        body: "Pope Gregory III (8th c.) is associated with fixing the celebration of All Saints on 1 November. The broader Allhallowtide season gave the Church a formal autumn focus on saints and the dead.",
-        source: "Butler; church histories"
+        body: "The Roman calendar fixed a universal celebration of All Saints on 1 November. That decision helped turn the surrounding nights into Allhallowtide — a formal Christian season of holy memory.",
+        source: "Church histories; Butler"
       },
       {
         id: "ireland-christian",
-        coords: [53.2, -7.8],
+        coords: [-7.8, 53.2],
         layer: "christian",
         emoji: "🕯️",
         title: "Ireland — All Hallows’ Eve",
-        body: "As Christianity took root, the night before All Saints’ became All Hallows’ Eve. Church vigils and prayers for the dead existed alongside older seasonal customs.",
+        body: "As the Church’s calendar took hold, the night before All Saints’ became All Hallows’ Eve. Vigils and prayers for the dead stood alongside — not always against — older seasonal habits.",
         source: "Santino; Hutton"
       },
       {
         id: "britain-souling",
-        coords: [52.4862, -1.8904],
+        coords: [-1.8904, 52.4862],
         layer: "christian",
         emoji: "⛪",
         title: "England — Souling",
-        body: "In parts of England, ‘souling’ involved going door to door offering prayers for the dead in exchange for soul cakes — a clear Christian–folk blend.",
+        body: "Souling sent Christians door to door with prayers for the dead in exchange for soul cakes. Sacred obligation and neighborhood exchange met on the same threshold.",
         source: "Hutton, 1996"
       },
       {
         id: "britain-guising",
-        coords: [53.4808, -2.2426],
+        coords: [-2.2426, 53.4808],
         layer: "samhain",
         emoji: "🎃",
         title: "Britain — Guising & Lanterns",
-        body: "Guising, mumming, and hollowed turnip lanterns (the ancestors of jack-o’-lanterns) remained popular folk practices through the medieval and early modern periods.",
+        body: "Guising, mumming, and hollowed turnip lanterns kept folk energy in the season. These are the direct ancestors of costumes and jack-o’-lanterns.",
         source: "Rogers, 2002"
       },
       {
         id: "boston-modern",
-        coords: [42.3601, -71.0589],
+        coords: [-71.0589, 42.3601],
         layer: "modern",
         emoji: "🎃",
         title: "New England — Immigrant Roots",
-        body: "Irish and Scottish immigrants in the 19th century brought Halloween customs to North America. Community parties and pranks gradually gave way to more organized celebrations.",
+        body: "Irish and Scottish communities in the Northeast helped plant Halloween on American soil. Local parties and pranks slowly organized into shared neighborhood custom.",
         source: "Skal, 2002"
       },
       {
         id: "nyc-modern",
-        coords: [40.7128, -74.006],
+        coords: [-74.006, 40.7128],
         layer: "modern",
         emoji: "🍬",
         title: "United States — Trick-or-Treat Era",
-        body: "By the mid-20th century, trick-or-treating, commercial costumes, and candy culture defined American Halloween — later exported globally through media and retail.",
+        body: "By mid-century, trick-or-treating, commercial costumes, and candy defined a mass American Halloween — soon amplified by film, television, and retail worldwide.",
         source: "Skal; cultural histories"
       },
       {
         id: "mexico-dotd",
-        coords: [19.4326, -99.1332],
+        coords: [-99.1332, 19.4326],
         layer: "modern",
         emoji: "💀",
         title: "Mexico — Día de los Muertos",
-        body: "Día de los Muertos is a distinct living tradition that weaves Indigenous remembrance practices with Catholic All Saints’ / All Souls’ observances — ofrendas, marigolds, and family cemetery visits.",
+        body: "A living tradition of family remembrance: ofrendas, marigolds, cemetery visits. Indigenous and Catholic threads braid into something related to — but not the same as — commercial Halloween.",
         source: "Brandes, 2006"
       },
       {
         id: "japan-modern",
-        coords: [35.6762, 139.6503],
+        coords: [139.6503, 35.6762],
         layer: "modern",
         emoji: "🎃",
-        title: "Japan & Global Spread",
-        body: "In recent decades commercial Halloween (costumes, parties, themed events) has grown rapidly in places with little prior folk tradition — a modern media-driven layer of the holiday.",
+        title: "Japan & the Global Wave",
+        body: "In places without deep folk Halloween roots, media and commerce built a new October festival of costumes and spectacle — proof of how portable the modern layer has become.",
         source: "Contemporary cultural reporting"
       }
     ];
 
-    // ---------- Map ----------
-    const map = L.map("map", {
-      zoomControl: true,
+    // ========== PARTICLES ==========
+    const particlesEl = document.getElementById("particles");
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement("span");
+      p.className = "particle";
+      p.style.left = Math.random() * 100 + "%";
+      p.style.animationDuration = 8 + Math.random() * 14 + "s";
+      p.style.animationDelay = Math.random() * 10 + "s";
+      p.style.width = p.style.height = 2 + Math.random() * 3 + "px";
+      particlesEl.appendChild(p);
+    }
+
+    // ========== MAP ==========
+    const map = new maplibregl.Map({
+      container: "map",
+      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+      center: [-20, 30],
+      zoom: 1.6,
       attributionControl: true
-    }).setView([30, -20], 2);
+    });
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "bottom-right");
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: "&copy; OpenStreetMap &copy; CARTO",
-      maxZoom: 18,
-      subdomains: "abcd"
-    }).addTo(map);
+    const markers = {};
+    const layerVisible = { samhain: true, christian: true, modern: true };
+    let activePopup = null;
 
-    const layers = {
-      samhain: L.layerGroup().addTo(map),
-      christian: L.layerGroup().addTo(map),
-      modern: L.layerGroup().addTo(map)
-    };
+    function createMarkerEl(place) {
+      const el = document.createElement("div");
+      el.className = `marker ${place.layer}`;
+      el.innerHTML = `
+        <div class="marker-pulse"></div>
+        <div class="marker-inner">${place.emoji}</div>
+      `;
+      el.title = place.title;
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openPlace(place.id);
+      });
+      return el;
+    }
 
-    const markersById = {};
+    map.on("load", () => {
+      PLACES.forEach((place) => {
+        const el = createMarkerEl(place);
+        const marker = new maplibregl.Marker({ element: el, anchor: "center" })
+          .setLngLat(place.coords)
+          .addTo(map);
+        markers[place.id] = { marker, place, el };
+      });
+      goToChapter(0, false);
+    });
 
-    function makeIcon(layer, emoji) {
-      return L.divIcon({
-        className: "",
-        html: `<div class="pin ${layer}">${emoji}</div>`,
-        iconSize: [34, 34],
-        iconAnchor: [17, 17],
-        popupAnchor: [0, -18]
+    function setLayerVisible(layer, on) {
+      layerVisible[layer] = on;
+      Object.values(markers).forEach(({ marker, place, el }) => {
+        if (place.layer === layer) {
+          el.style.display = on ? "block" : "none";
+        }
       });
     }
 
-    PLACES.forEach((p) => {
-      const marker = L.marker(p.coords, {
-        icon: makeIcon(p.layer, p.emoji)
-      }).bindPopup(`
-        <div class="popup-inner">
-          <div class="popup-tag ${p.layer}">${p.layer}</div>
-          <div class="popup-title">${p.title}</div>
-          <div class="popup-body">${p.body}</div>
-          <div class="popup-source">${p.source}</div>
-        </div>
-      `);
-      marker.addTo(layers[p.layer]);
-      markersById[p.id] = marker;
+    document.querySelectorAll(".chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const layer = btn.dataset.layer;
+        const on = btn.classList.toggle("on");
+        setLayerVisible(layer, on);
+      });
     });
 
-    // ---------- Chapters UI ----------
-    const chaptersEl = document.getElementById("chapters");
-    let activeChapter = null;
+    function openPlace(id) {
+      const entry = markers[id];
+      if (!entry) return;
+      const { place } = entry;
+      if (activePopup) activePopup.remove();
+      activePopup = new maplibregl.Popup({ offset: 22, maxWidth: "300px" })
+        .setLngLat(place.coords)
+        .setHTML(`
+          <div class="popup-inner">
+            <div class="popup-tag ${place.layer}">${place.layer}</div>
+            <div class="popup-title">${place.title}</div>
+            <div class="popup-body">${place.body}</div>
+            <div class="popup-source">${place.source}</div>
+          </div>
+        `)
+        .addTo(map);
+    }
+
+    // ========== CHAPTERS UI ==========
+    const storyPanel = document.getElementById("storyPanel");
+    let chapterIndex = 0;
 
     CHAPTERS.forEach((ch, i) => {
-      const el = document.createElement("div");
-      el.className = "chapter" + (i === 0 ? " active" : "");
-      el.dataset.id = ch.id;
-      el.innerHTML = `
+      const card = document.createElement("div");
+      card.className = "chapter-card" + (i === 0 ? " active" : "");
+      card.dataset.index = i;
+      card.innerHTML = `
         <div class="era">${ch.era}</div>
         <h3>${ch.title}</h3>
         <p>${ch.summary}</p>
+        <div class="story-expand">${ch.story}</div>
       `;
-      el.addEventListener("click", () => activateChapter(ch.id));
-      chaptersEl.appendChild(el);
+      card.addEventListener("click", () => goToChapter(i));
+      storyPanel.appendChild(card);
     });
 
-    function activateChapter(id) {
-      const ch = CHAPTERS.find((c) => c.id === id);
-      if (!ch) return;
-      activeChapter = id;
+    function goToChapter(index, animate = true) {
+      chapterIndex = Math.max(0, Math.min(CHAPTERS.length - 1, index));
+      const ch = CHAPTERS[chapterIndex];
 
-      document.querySelectorAll(".chapter").forEach((el) => {
-        el.classList.toggle("active", el.dataset.id === id);
+      document.querySelectorAll(".chapter-card").forEach((el, i) => {
+        el.classList.toggle("active", i === chapterIndex);
       });
 
-      map.flyTo(ch.center, ch.zoom, { duration: 1.4 });
+      // Scroll active card into view
+      const activeCard = storyPanel.querySelector(`.chapter-card[data-index="${chapterIndex}"]`);
+      if (activeCard) activeCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
-      // Briefly open the first highlight popup
-      if (ch.highlight && ch.highlight.length) {
-        const first = markersById[ch.highlight[0]];
-        if (first) {
-          setTimeout(() => first.openPopup(), 900);
+      document.getElementById("progressLabel").textContent = `Chapter ${chapterIndex + 1} of ${CHAPTERS.length}`;
+      document.getElementById("progressFill").style.width = `${((chapterIndex + 1) / CHAPTERS.length) * 100}%`;
+
+      document.getElementById("btnPrev").disabled = chapterIndex === 0;
+      document.getElementById("btnNext").disabled = chapterIndex === CHAPTERS.length - 1;
+
+      if (map.isStyleLoaded && map.isStyleLoaded()) {
+        map.flyTo({
+          center: ch.center,
+          zoom: ch.zoom,
+          duration: animate ? 1800 : 0,
+          essential: true
+        });
+        if (ch.highlight && ch.highlight.length) {
+          setTimeout(() => openPlace(ch.highlight[0]), animate ? 1100 : 200);
         }
       }
+
+      // Hide hint after first interaction
+      document.getElementById("hint").classList.add("hide");
     }
 
-    // Start on origins
-    activateChapter("origins");
+    document.getElementById("btnPrev").addEventListener("click", () => goToChapter(chapterIndex - 1));
+    document.getElementById("btnNext").addEventListener("click", () => goToChapter(chapterIndex + 1));
 
-    // ---------- Layer chips ----------
-    document.querySelectorAll(".chip").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const key = btn.dataset.layer;
-        const isOn = btn.classList.toggle("on");
-        if (isOn) {
-          map.addLayer(layers[key]);
-        } else {
-          map.removeLayer(layers[key]);
-        }
-      });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        goToChapter(chapterIndex + 1);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        goToChapter(chapterIndex - 1);
+      }
     });
   </script>
 </body>
