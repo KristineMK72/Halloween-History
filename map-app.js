@@ -1,113 +1,205 @@
 // Halloween History — amazing edition
 // GSAP motion · Turf journey paths · layered ambient · MapLibre
+// CHAPTERS and PLACES load from chapters-data.js
 
-const CHAPTERS = [
-  {
-    id: "origins",
-    era: "c. 500 BCE – 400 CE",
-    title: "Samhain’s Fires",
-    summary: "Celtic communities marked summer’s end with fire, harvest, and thin thresholds — the folk deep background of the season.",
-    story: `<p>In early Ireland and neighboring Celtic lands, <strong>Samhain</strong> closed the harvest and opened winter. Bonfires, livestock rites, and stories of a permeable boundary between living and dead shaped the emotional weather of late autumn.</p>
-<p>This is the folk deep background — not a single “Halloween invented here” moment, but a seasonal hinge that later generations would remember, adapt, and argue about. Historians stress that the evidence is uneven: seasonal fire festivals were real; modern reconstructions of “exact rituals” are often later imagination.</p>
-<p>What matters for the Christian story ahead is simple: <strong>the same weeks of the year</strong> would later hold prayer for the saints and the dead. Folk memory and Church calendar would share the darkening edge of the year.</p>`,
-    christianCallout: "What comes next is not a simple ‘pagan holiday stolen by the Church.’ It is a long negotiation: Christian calendar, prayer for the dead, and local custom sharing the same darkening weeks.",
-    plate: { class: "samhain", icons: "🔥 🌑 🍂", caption: "Seasonal hinge: fire, harvest’s end, threshold night" },
+const placeById = Object.fromEntries(PLACES.map((p) => [p.id, p]));
+
+const splash = document.getElementById("splash");
+document.getElementById("splashStart").addEventListener("click", () => {
+  gsap.to(splash, {
+    opacity: 0,
+    duration: 0.7,
+    ease: "power2.inOut",
+    onComplete: () => {
+      splash.classList.add("hide");
+      splash.style.pointerEvents = "none";
+      goToChapter(0, false);
+    }
+  });
+});
+
+let map;
+let chapterIndex = 0;
+const layerVisible = { samhain: true, christian: true, modern: true };
+let pathsOn = true;
+let audioOn = false;
+let audioCtx;
+
+function initMap() {
+  map = new maplibregl.Map({
+    container: "map",
+    style: "https://tiles.openfreemap.org/styles/dark",
     center: [-7.5, 53.5],
-    zoom: 5.8,
-    pitch: 45,
-    highlight: ["ireland-samhain", "scotland-samhain"],
-    path: ["ireland-samhain", "scotland-samhain"],
-    christianHeavy: false
-  },
-  {
-    id: "christian",
-    era: "600 – 1000 CE",
-    title: "Allhallowtide Arrives",
-    summary: "The Church set All Saints and All Souls — a Christian spine of holy memory. Halloween’s very name is Christian.",
-    story: `<p>As Christianity spread across Europe, the Church gave late autumn a formal sacred structure. <strong>All Saints’ Day</strong> (1 November) honors the whole communion of saints — known and unknown. Later, <strong>All Souls’ Day</strong> (2 November) focused prayer on the faithful departed. Together they form <strong>Allhallowtide</strong>.</p>
-<p>The night before All Saints became <strong>All Hallows’ Eve</strong> — the root of the word <strong>Halloween</strong>. That is not a marketing accident; it is a Christian vigil name. “Hallow” means holy: the evening before the feast of all holy ones.</p>
-<p>In Rome and across the Latin West, the calendar taught believers to remember the dead before God — not as ghosts to fear only, but as souls held in prayer. Irish and other local churches already had strong traditions of remembering the holy dead; the universal feasts reinforced that impulse at a fixed point in the year.</p>
-<p>So the Christian claim on the season is structural: <strong>a named feast, a vigil, and intercession for the dead</strong> sit at the center of the medieval autumn calendar — right where older folk thresholds had already made people think about mortality and memory.</p>`,
-    christianCallout: "Allhallowtide is not a footnote. Halloween’s name itself — All Hallows’ Eve — is a Christian name. The season’s Christian spine is prayer for saints and souls.",
-    plate: { class: "christian", icons: "✝ 🕯️ ⛪", caption: "All Saints · All Souls · vigils and prayer for the dead" },
-    center: [12.5, 42],
-    zoom: 4.8,
-    pitch: 40,
-    highlight: ["rome-saints", "ireland-christian"],
-    path: ["rome-saints", "ireland-christian", "britain-souling"],
-    christianHeavy: true
-  },
-  {
-    id: "medieval",
-    era: "1000 – 1500",
-    title: "Sacred & Folk Entwined",
-    summary: "Souling, church bells, Masses for the dead, and charity lived beside guising and lanterns.",
-    story: `<p>In medieval Britain and Ireland the season was a <strong>braid</strong>, not a single pure tradition. Parish churches kept the feasts of All Saints and All Souls with Masses, bells, and prayer for the dead. Families remembered loved ones; the Church taught that charity and intercession mattered.</p>
-<p><strong>Souling</strong> sent people — often the poor or children — door to door offering prayers for the dead in exchange for <strong>soul cakes</strong>. That is explicit Christian practice: almsgiving joined to prayer for souls. It is one of the clearest bridges between household custom and church teaching about the dead.</p>
-<p>Alongside that sacred work, folk customs continued: guising (disguise), seasonal games, and later turnip lanterns. The night could hold both a prayer at the door and a playful mask in the lane. Historians such as Ronald Hutton describe this as coexistence and negotiation, not a simple replacement of one pure culture by another.</p>
-<p>If you only tell the “scary folk night” story, you erase the parish. If you only tell a sterilized church story, you erase the street. Medieval Allhallowtide held both.</p>`,
-    christianCallout: "Souling is clear Christian practice: prayer for souls, alms, and remembrance. The medieval season was sacred and folk at once — not one or the other.",
-    plate: { class: "blend", icons: "⛪ 🍞 🎃", caption: "Soul cakes · parish prayer · guising in the same weeks" },
-    center: [-2.5, 53],
-    zoom: 5.5,
-    pitch: 40,
-    highlight: ["britain-souling", "britain-guising", "ireland-christian"],
-    path: ["ireland-christian", "britain-souling", "britain-guising"],
-    christianHeavy: true
-  },
-  {
-    id: "reform",
-    era: "1500 – 1700",
-    title: "Reformation Debates",
-    summary: "Protestant critique met Catholic continuity — Allhallowtide stayed alive in parish life.",
-    story: `<p>The Reformation changed how many Christians related to prayer for the dead. In Protestant regions, practices tied to purgatory and intercession for souls were often criticized as superstition or residual Catholicism. Some seasonal customs were discouraged or reinterpreted.</p>
-<p>Yet the story is not “Halloween vanished.” <strong>Catholic communities kept All Saints and All Souls</strong> with full liturgical weight. In Ireland and among English Catholics, the feasts remained part of the sacred year. Folk customs also persisted — sometimes quietly, sometimes rebranded, sometimes simply continuing in villages.</p>
-<p>What this era shows is that the Christian argument about the season was real and serious. People disagreed about doctrine — but they still lived inside a calendar that asked what we owe the dead and how we honor holiness. The modern habit of treating Halloween as only “pagan or party” skips this whole chapter of Christian debate.</p>
-<p>By the time migrants carried autumn customs overseas, they carried both folk play and — in many families — a church memory of November’s holy days.</p>`,
-    christianCallout: "Catholic Allhallowtide did not disappear. Reformation debates prove the season’s Christian stakes — prayer, doctrine, and memory — were still live questions.",
-    plate: { class: "christian", icons: "📜 ✝ 🕯️", caption: "Doctrine contested · feasts retained · customs renegotiated" },
-    center: [-2, 52.5],
-    zoom: 5.2,
-    pitch: 35,
-    highlight: ["britain-souling", "ireland-christian"],
-    path: ["britain-souling", "ireland-christian"],
-    christianHeavy: true
-  },
-  {
-    id: "america",
-    era: "1800 – 1950",
-    title: "Across the Atlantic",
-    summary: "Immigrants brought folk night and parish Allhallowtide. Pumpkins and trick-or-treat met All Saints and All Souls.",
-    story: `<p>Irish and Scottish migration brought autumn customs to North America. The <strong>pumpkin</strong> replaced the turnip lantern. Community parties and, later, <strong>trick-or-treating</strong> reshaped the public night into something recognizably modern.</p>
-<p>At the same time, Catholic and other Christian communities continued <strong>All Saints’ and All Souls’</strong> observance. Immigrant parishes kept November’s feasts: Masses for the dead, cemetery visits, prayers for family who had died far from home. The “American Halloween” story is incomplete without those parish calendars.</p>
-<p>In the twentieth century, churches responded in different ways — some wary of commercial spook culture, some hosting alternatives, many simply continuing liturgy while neighborhoods ran costume nights. <strong>Trunk-or-treat</strong> and fall festivals are later forms of that negotiation: Christian communities claiming safe, congregational space inside the same seasonal window.</p>
-<p>So the Atlantic crossing did not erase the Christian thread. It layered a new public script (costume, candy, porch light) on top of older sacred memory.</p>`,
-    christianCallout: "Trunk-or-treat, All Souls’ remembrances, and parish festivals are part of the same long Christian negotiation with the season — not a modern invention from nowhere.",
-    plate: { class: "modern", icons: "🎃 🍬 ✝", caption: "Immigrant folk night · parish Allhallowtide · new American script" },
-    center: [-74, 41],
-    zoom: 5,
-    pitch: 35,
-    highlight: ["boston-modern", "nyc-modern"],
-    path: ["ireland-samhain", "boston-modern", "nyc-modern"],
-    christianHeavy: false
-  },
-  {
-    id: "global",
-    era: "1950 – Present",
-    title: "Many October Nights",
-    summary: "Global pop-Halloween spreads — while Christian remembrance and Día de los Muertos keep sacred memory alive.",
-    story: `<p>Media and retail exported commercial Halloween worldwide: costumes, orange-and-black branding, themed entertainment. In many places the holiday arrived as pop culture first, without local Samhain memory or parish Allhallowtide.</p>
-<p>Yet the Christian thread continues wherever churches keep the calendar. <strong>All Saints</strong> and <strong>All Souls</strong> remain living feasts in Catholic, Anglican, and other traditions. Christians still gather to name the dead, sing of the communion of saints, and hope in resurrection — the theological heart that commercial Halloween cannot supply.</p>
-<p><strong>Día de los Muertos</strong> in Mexico and Mexican-American communities stands as a powerful related tradition: Indigenous remembrance practices braided with Catholic All Saints and All Souls. It is not “Mexican Halloween,” but it shares the season’s deep human work — remembering the dead with love, food, light, and prayer.</p>
-<p>To stress only “pagan roots” or only “candy capitalism” misses the Christian middle: <strong>remember the dead before God</strong>. That middle is still available every November — with or without a costume.</p>`,
-    christianCallout: "The Christian middle still stands: All Saints, All Souls, and living traditions of remembrance. Halloween’s loudest ads are not the whole story of the season.",
-    plate: { class: "blend", icons: "💀 🕯️ 🎃", caption: "Global costume night · living Christian & familial remembrance" },
-    center: [-40, 25],
-    zoom: 2.5,
-    pitch: 20,
-    highlight: ["mexico-dotd", "nyc-modern", "japan-modern"],
-    path: ["nyc-modern", "mexico-dotd", "japan-modern"],
-    christianHeavy: true
-  }
-];
+    zoom: 4.5,
+    pitch: 30,
+    attributionControl: true
+  });
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+  map.on("load", () => {
+    map.addSource("journey", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({
+      id: "journey-line",
+      type: "line",
+      source: "journey",
+      paint: {
+        "line-color": "#f97316",
+        "line-width": 3,
+        "line-opacity": 0.85
+      }
+    });
+    PLACES.forEach((place) => addMarker(place));
+    buildChapterCards();
+    goToChapter(0, false);
+  });
+}
 
+function addMarker(place) {
+  const el = document.createElement("div");
+  el.className = "marker-wrap";
+  el.dataset.layer = place.layer;
+  el.innerHTML = `<div class="marker-pulse"></div><div class="marker-inner">${place.emoji}</div>`;
+  el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openPlace(place.id);
+  });
+  new maplibregl.Marker({ element: el }).setLngLat(place.coords).addTo(map);
+}
+
+function openPlace(id) {
+  const place = placeById[id];
+  if (!place) return;
+  const html = `<div class="popup-card"><h4>${place.emoji} ${place.title}</h4><p>${place.body}</p><div class="src">${place.source || ""}</div></div>`;
+  new maplibregl.Popup({ maxWidth: "280px" }).setLngLat(place.coords).setHTML(html).addTo(map);
+}
+
+function drawJourneyPath(ch) {
+  if (!pathsOn || !ch.path || ch.path.length < 2) {
+    map.getSource("journey")?.setData({ type: "FeatureCollection", features: [] });
+    return;
+  }
+  const coords = ch.path.map((id) => placeById[id]?.coords).filter(Boolean);
+  if (coords.length < 2) return;
+  const line = turf.lineString(coords);
+  const curved = turf.bezierSpline(line, { sharpness: 0.85 });
+  map.getSource("journey").setData(curved);
+  const state = { o: 0.3 };
+  gsap.to(state, {
+    o: 0.95,
+    duration: 1.2,
+    yoyo: true,
+    repeat: 2,
+    ease: "sine.inOut",
+    onUpdate: () => {
+      if (map.getLayer("journey-line")) {
+        map.setPaintProperty("journey-line", "line-opacity", state.o);
+      }
+    }
+  });
+}
+
+const storyPanel = document.getElementById("storyPanel");
+
+function buildChapterCards() {
+  storyPanel.innerHTML = "";
+  CHAPTERS.forEach((ch, i) => {
+    const card = document.createElement("div");
+    card.className = "chapter-card" + (ch.christianHeavy ? " christian-heavy" : "");
+    card.dataset.index = i;
+    card.innerHTML = `
+    <div class="era">${ch.era}</div>
+    <h3>${ch.title}</h3>
+    <p>${ch.summary}</p>
+    <div class="plate">
+      <div class="plate-visual ${ch.plate.class}">${ch.plate.icons}</div>
+      <div class="plate-caption">${ch.plate.caption}</div>
+    </div>
+    <div class="story-expand">
+      ${ch.story}
+      <div class="christian-callout">${ch.christianCallout}</div>
+    </div>`;
+    card.addEventListener("click", () => goToChapter(i));
+    storyPanel.appendChild(card);
+  });
+  gsap.from(".chapter-card", { opacity: 0, y: 12, stagger: 0.06, duration: 0.45, ease: "power2.out" });
+}
+
+function goToChapter(index, animate = true) {
+  chapterIndex = Math.max(0, Math.min(CHAPTERS.length - 1, index));
+  const ch = CHAPTERS[chapterIndex];
+  document.querySelectorAll(".chapter-card").forEach((el, i) => {
+    el.classList.toggle("active", i === chapterIndex);
+  });
+  const activeCard = storyPanel.querySelector(`.chapter-card[data-index="${chapterIndex}"]`);
+  if (activeCard) {
+    activeCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    gsap.fromTo(activeCard, { scale: 0.98 }, { scale: 1, duration: 0.35, ease: "back.out(1.4)" });
+  }
+  document.getElementById("progressLabel").textContent = `Chapter ${chapterIndex + 1} of ${CHAPTERS.length}`;
+  gsap.to("#progressFill", {
+    width: `${((chapterIndex + 1) / CHAPTERS.length) * 100}%`,
+    duration: 0.5,
+    ease: "power2.out"
+  });
+  document.getElementById("btnPrev").disabled = chapterIndex === 0;
+  document.getElementById("btnNext").disabled = chapterIndex === CHAPTERS.length - 1;
+  if (map && map.loaded()) {
+    map.flyTo({
+      center: ch.center,
+      zoom: ch.zoom,
+      pitch: ch.pitch || 0,
+      bearing: chapterIndex % 2 === 0 ? -8 : 8,
+      duration: animate ? 2200 : 0,
+      essential: true
+    });
+    drawJourneyPath(ch);
+    if (ch.highlight && ch.highlight.length) {
+      setTimeout(() => openPlace(ch.highlight[0]), animate ? 1400 : 200);
+    }
+  }
+  document.getElementById("hint").classList.add("hide");
+}
+
+document.getElementById("btnPrev").addEventListener("click", () => goToChapter(chapterIndex - 1));
+document.getElementById("btnNext").addEventListener("click", () => goToChapter(chapterIndex + 1));
+
+document.querySelectorAll(".layer-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const layer = btn.dataset.layer;
+    layerVisible[layer] = !layerVisible[layer];
+    btn.classList.toggle("on", layerVisible[layer]);
+    document.querySelectorAll(`.marker-wrap[data-layer="${layer}"]`).forEach((el) => {
+      el.style.display = layerVisible[layer] ? "" : "none";
+    });
+  });
+});
+
+document.getElementById("btnAudio").addEventListener("click", () => {
+  audioOn = !audioOn;
+  document.getElementById("btnAudio").classList.toggle("on", audioOn);
+  document.getElementById("btnAudio").textContent = audioOn ? "Sound on" : "Sound";
+  if (audioOn && !audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 110;
+      gain.gain.value = 0.02;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+    } catch (_) {}
+  }
+});
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+    e.preventDefault();
+    goToChapter(chapterIndex + 1);
+  } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+    e.preventDefault();
+    goToChapter(chapterIndex - 1);
+  }
+});
+
+initMap();
