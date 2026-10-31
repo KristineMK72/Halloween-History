@@ -30,7 +30,7 @@ function initMap() {
     container: "map",
     style: "https://tiles.openfreemap.org/styles/dark",
     center: [-7.5, 53.5],
-    zoom: 3.2,
+    zoom: 2.5,
     pitch: 30,
     attributionControl: true
   });
