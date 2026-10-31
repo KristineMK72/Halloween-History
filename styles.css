@@ -12,12 +12,7 @@
 html, body { margin: 0; height: 100%; font-family: var(--font); background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.6; }
 #map { position: fixed; inset: 0; }
 
-.splash {
-  position: fixed; inset: 0; z-index: 100;
-  display: grid; place-items: center;
-  background: radial-gradient(ellipse at 50% 30%, #1c1917 0%, #070b14 55%, #020617 100%);
-  text-align: center; padding: 1rem;
-}
+.splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 30%, #1c1917 0%, #070b14 55%, #020617 100%); text-align: center; padding: 1rem; }
 .splash.hide { display: none; }
 .splash-kicker { font-size: 0.8rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--orange); font-weight: 700; margin-bottom: 0.75rem; }
 .splash h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); font-weight: 900; margin: 0 0 0.75rem; background: linear-gradient(135deg, #fdba74, #f97316 40%, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
@@ -27,20 +22,8 @@ html, body { margin: 0; height: 100%; font-family: var(--font); background: var(
 .splash-start { border: none; cursor: pointer; background: linear-gradient(135deg, #ea580c, #f97316); color: #1c0900; font-weight: 800; font-size: 1.05rem; padding: 0.9rem 1.8rem; border-radius: 999px; font-family: inherit; }
 .splash-hint { margin-top: 1rem; font-size: 0.8rem; color: #94a3b8; }
 
-.shell {
-  position: fixed; inset: 0; z-index: 10;
-  display: grid;
-  grid-template-columns: minmax(320px, 420px) 1fr;
-  height: 100dvh;
-}
-.sidebar {
-  background: #0b1220;
-  border-right: 1px solid var(--stroke);
-  display: flex; flex-direction: column;
-  height: 100dvh;
-  min-height: 0;
-  overflow: hidden;
-}
+.shell { position: fixed; inset: 0; z-index: 10; display: grid; grid-template-columns: minmax(320px, 420px) 1fr; height: 100dvh; }
+.sidebar { background: #0b1220; border-right: 1px solid var(--stroke); display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; }
 .sidebar-head { padding: 1rem 1.1rem 0.7rem; border-bottom: 1px solid var(--stroke); flex-shrink: 0; }
 .sidebar-kicker { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--orange); font-weight: 700; }
 .sidebar h1 { margin: 0.25rem 0 0.3rem; font-size: 1.4rem; font-weight: 900; background: linear-gradient(135deg, #fdba74, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
@@ -66,6 +49,7 @@ html, body { margin: 0; height: 100%; font-family: var(--font); background: var(
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   background: #0b1220;
+  touch-action: pan-y;
 }
 
 .chapter-card { border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; cursor: pointer; background: rgba(255,255,255,0.04); }
@@ -110,13 +94,12 @@ html, body { margin: 0; height: 100%; font-family: var(--font); background: var(
 .marker-pulse { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid rgba(249,115,22,0.5); animation: pulse 2s ease-out infinite; }
 @keyframes pulse { 0% { transform: scale(0.85); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
 
-/* Portrait phones — only the active chapter is shown, panel scrolls */
-@media (max-width: 767px) {
+/* Portrait — single active chapter, scrollable */
+@media (max-width: 767px) and (orientation: portrait) {
   .shell { display: block; height: 100dvh; }
-  .map-chrome { position: fixed; left: 0; right: 0; top: 62dvh; bottom: 0; }
+  .map-chrome { position: fixed; left: 0; right: 0; top: 62dvh; bottom: 0; pointer-events: auto; }
   .sidebar {
-    position: fixed;
-    left: 0; right: 0; top: 0;
+    position: fixed; left: 0; right: 0; top: 0;
     height: 62dvh; max-height: 62dvh;
     z-index: 20;
     border-right: none;
@@ -128,42 +111,51 @@ html, body { margin: 0; height: 100%; font-family: var(--font); background: var(
   .toolbar { padding: 0.35rem 0.65rem; }
   .toolbar-note { display: none; }
   .progress-wrap { padding: 0.3rem 0.75rem 0.15rem; }
-  .story-panel {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
-    padding: 0.5rem 0.7rem 0.7rem;
-  }
-  /* Hide inactive chapters so the active one has the full scroll area */
+  .story-panel { flex: 1 1 auto; min-height: 0; overflow-y: scroll; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
   .chapter-card:not(.active) { display: none; }
   .chapter-card.active { margin-bottom: 0; border: none; background: transparent; padding: 0.2rem 0.1rem; }
-  .chapter-card.active .story-expand { display: block; color: #ffffff; }
-  .chapter-card.active .story-expand p { color: #ffffff; }
   .nav-row { padding: 0.4rem 0.65rem 0.55rem; }
-  .map-chrome .hint { bottom: 0.5rem; font-size: 0.7rem; }
 }
 
-/* Landscape phones */
-@media (max-width: 950px) and (orientation: landscape) {
+/* Landscape — full chapter list, independently scrollable sidebar */
+@media (orientation: landscape) and (max-height: 500px) {
   .shell {
-    display: grid;
-    grid-template-columns: minmax(300px, 48vw) 1fr;
+    display: grid !important;
+    grid-template-columns: minmax(280px, 46vw) 1fr !important;
     height: 100dvh;
   }
   .sidebar {
-    position: relative;
-    height: 100dvh;
-    max-height: 100dvh;
+    position: relative !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    width: auto !important;
+    z-index: 20;
     border-bottom: none;
     border-right: 1px solid var(--stroke);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
-  .map-chrome { position: relative; height: 100%; top: auto; }
-  .chapter-card:not(.active) { display: none; }
+  .map-chrome {
+    position: relative !important;
+    top: auto !important;
+    left: auto; right: auto; bottom: auto;
+    height: 100dvh;
+  }
+  /* Show all chapters so the list can be scrolled */
+  .chapter-card { display: block !important; }
   .story-panel {
-    overflow-y: scroll;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    overflow-y: scroll !important;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
+    overscroll-behavior: contain;
   }
+  .sidebar-head { padding: 0.4rem 0.7rem 0.25rem; }
+  .sidebar h1 { font-size: 1rem; }
+  .toolbar { padding: 0.3rem 0.6rem; }
+  .toolbar-note { display: none; }
+  .nav-row { padding: 0.35rem 0.6rem 0.45rem; }
 }
