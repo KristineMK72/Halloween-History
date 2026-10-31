@@ -31,8 +31,15 @@ function initMap() {
     style: "https://tiles.openfreemap.org/styles/dark",
     center: [-7.5, 53.5],
     zoom: 2.5,
-    pitch: 30,
-    attributionControl: true
+    pitch: 20,
+    attributionControl: true,
+    scrollZoom: true,
+    dragPan: true,
+    dragRotate: true,
+    touchZoomRotate: true,
+    touchPitch: true,
+    doubleClickZoom: true,
+    keyboard: true
   });
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
   map.on("load", () => {
@@ -65,7 +72,13 @@ function openPlace(id) {
   const place = placeById[id];
   if (!place) return;
   const html = `<div class="popup-card"><h4>${place.emoji} ${place.title}</h4><p>${place.body}</p><div class="src">${place.source || ""}</div></div>`;
-  new maplibregl.Popup({ maxWidth: "280px" }).setLngLat(place.coords).setHTML(html).addTo(map);
+  const mobile = window.matchMedia("(max-width: 767px)").matches;
+  const landscape = window.matchMedia("(orientation: landscape) and (max-height: 500px)").matches;
+  const popupOffset = mobile && !landscape ? [0, -16] : [0, -8];
+  new maplibregl.Popup({ maxWidth: "240px", offset: popupOffset, closeOnClick: false, focusAfterOpen: false })
+    .setLngLat(place.coords)
+    .setHTML(html)
+    .addTo(map);
 }
 
 function drawJourneyPath(ch) {
@@ -124,12 +137,17 @@ function goToChapter(index, animate = true) {
   document.getElementById("btnNext").disabled = chapterIndex === CHAPTERS.length - 1;
 
   if (map && map.loaded()) {
+    const mobile = window.matchMedia("(max-width: 767px)").matches;
+    const landscape = window.matchMedia("(orientation: landscape) and (max-height: 500px)").matches;
+    // Shift the visual center so the marker/popup lands in the uncovered map area
+    const offset = mobile && !landscape ? [0, -90] : (landscape ? [80, 0] : [0, 0]);
     map.flyTo({
       center: ch.center,
       zoom: ch.zoom,
       pitch: ch.pitch || 0,
-      bearing: chapterIndex % 2 === 0 ? -8 : 8,
-      duration: animate ? 1800 : 0,
+      bearing: 0,
+      offset: offset,
+      duration: animate ? 1600 : 0,
       essential: true
     });
     drawJourneyPath(ch);
