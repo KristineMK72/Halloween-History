@@ -1,14 +1,11 @@
-// Halloween History — amazing edition
-// GSAP motion · Turf journey paths · layered ambient · MapLibre
-// CHAPTERS and PLACES load from chapters-data.js
-
+// Halloween History — map + chapters
 const placeById = Object.fromEntries(PLACES.map((p) => [p.id, p]));
 
 const splash = document.getElementById("splash");
 document.getElementById("splashStart").addEventListener("click", () => {
   gsap.to(splash, {
     opacity: 0,
-    duration: 0.7,
+    duration: 0.5,
     ease: "power2.inOut",
     onComplete: () => {
       splash.classList.add("hide");
@@ -21,9 +18,12 @@ document.getElementById("splashStart").addEventListener("click", () => {
 let map;
 let chapterIndex = 0;
 const layerVisible = { samhain: true, christian: true, modern: true };
-let pathsOn = true;
 let audioOn = false;
 let audioCtx;
+
+function isMobile() {
+  return window.matchMedia("(max-width: 767px)").matches;
+}
 
 function initMap() {
   map = new maplibregl.Map({
@@ -41,11 +41,7 @@ function initMap() {
       id: "journey-line",
       type: "line",
       source: "journey",
-      paint: {
-        "line-color": "#f97316",
-        "line-width": 3,
-        "line-opacity": 0.85
-      }
+      paint: { "line-color": "#f97316", "line-width": 3, "line-opacity": 0.85 }
     });
     PLACES.forEach((place) => addMarker(place));
     buildChapterCards();
@@ -73,7 +69,7 @@ function openPlace(id) {
 }
 
 function drawJourneyPath(ch) {
-  if (!pathsOn || !ch.path || ch.path.length < 2) {
+  if (!ch.path || ch.path.length < 2) {
     map.getSource("journey")?.setData({ type: "FeatureCollection", features: [] });
     return;
   }
@@ -82,19 +78,6 @@ function drawJourneyPath(ch) {
   const line = turf.lineString(coords);
   const curved = turf.bezierSpline(line, { sharpness: 0.85 });
   map.getSource("journey").setData(curved);
-  const state = { o: 0.3 };
-  gsap.to(state, {
-    o: 0.95,
-    duration: 1.2,
-    yoyo: true,
-    repeat: 2,
-    ease: "sine.inOut",
-    onUpdate: () => {
-      if (map.getLayer("journey-line")) {
-        map.setPaintProperty("journey-line", "line-opacity", state.o);
-      }
-    }
-  });
 }
 
 const storyPanel = document.getElementById("storyPanel");
@@ -108,7 +91,7 @@ function buildChapterCards() {
     card.innerHTML = `
     <div class="era">${ch.era}</div>
     <h3>${ch.title}</h3>
-    <p>${ch.summary}</p>
+    <p class="summary">${ch.summary}</p>
     <div class="plate">
       <div class="plate-visual ${ch.plate.class}">${ch.plate.icons}</div>
       <div class="plate-caption">${ch.plate.caption}</div>
@@ -120,50 +103,42 @@ function buildChapterCards() {
     card.addEventListener("click", () => goToChapter(i));
     storyPanel.appendChild(card);
   });
-  gsap.from(".chapter-card", { opacity: 0, y: 12, stagger: 0.06, duration: 0.45, ease: "power2.out" });
 }
 
 function goToChapter(index, animate = true) {
   chapterIndex = Math.max(0, Math.min(CHAPTERS.length - 1, index));
   const ch = CHAPTERS[chapterIndex];
+
   document.querySelectorAll(".chapter-card").forEach((el, i) => {
     el.classList.toggle("active", i === chapterIndex);
   });
-  const activeCard = storyPanel.querySelector(`.chapter-card[data-index="${chapterIndex}"]`);
-  if (activeCard) {
-    // Scroll the story panel so the full expanded card is visible
-    setTimeout(() => {
-      const panel = document.getElementById("storyPanel");
-      if (panel && activeCard) {
-        const top = activeCard.offsetTop - 8;
-        panel.scrollTo({ top: top, behavior: "smooth" });
-      }
-    }, 50);
-    gsap.fromTo(activeCard, { scale: 0.98 }, { scale: 1, duration: 0.35, ease: "back.out(1.4)" });
-  }
+
+  const panel = document.getElementById("storyPanel");
+  if (panel) panel.scrollTop = 0;
+
   document.getElementById("progressLabel").textContent = `Chapter ${chapterIndex + 1} of ${CHAPTERS.length}`;
-  gsap.to("#progressFill", {
-    width: `${((chapterIndex + 1) / CHAPTERS.length) * 100}%`,
-    duration: 0.5,
-    ease: "power2.out"
-  });
+  const fill = document.getElementById("progressFill");
+  if (fill) fill.style.width = `${((chapterIndex + 1) / CHAPTERS.length) * 100}%`;
+
   document.getElementById("btnPrev").disabled = chapterIndex === 0;
   document.getElementById("btnNext").disabled = chapterIndex === CHAPTERS.length - 1;
+
   if (map && map.loaded()) {
     map.flyTo({
       center: ch.center,
       zoom: ch.zoom,
       pitch: ch.pitch || 0,
       bearing: chapterIndex % 2 === 0 ? -8 : 8,
-      duration: animate ? 2200 : 0,
+      duration: animate ? 1800 : 0,
       essential: true
     });
     drawJourneyPath(ch);
     if (ch.highlight && ch.highlight.length) {
-      setTimeout(() => openPlace(ch.highlight[0]), animate ? 1400 : 200);
+      setTimeout(() => openPlace(ch.highlight[0]), animate ? 900 : 100);
     }
   }
-  document.getElementById("hint").classList.add("hide");
+  const hint = document.getElementById("hint");
+  if (hint) hint.classList.add("hide");
 }
 
 document.getElementById("btnPrev").addEventListener("click", () => goToChapter(chapterIndex - 1));
