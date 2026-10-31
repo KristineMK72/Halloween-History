@@ -22,8 +22,8 @@ html, body { margin: 0; height: 100%; font-family: var(--font); background: var(
 .splash-start { border: none; cursor: pointer; background: linear-gradient(135deg, #ea580c, #f97316); color: #1c0900; font-weight: 800; font-size: 1.05rem; padding: 0.9rem 1.8rem; border-radius: 999px; font-family: inherit; }
 .splash-hint { margin-top: 1rem; font-size: 0.8rem; color: #94a3b8; }
 
-.shell { position: fixed; inset: 0; z-index: 10; display: grid; grid-template-columns: minmax(320px, 420px) 1fr; height: 100dvh; }
-.sidebar { background: #0b1220; border-right: 1px solid var(--stroke); display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; }
+.shell { position: fixed; inset: 0; z-index: 10; display: grid; grid-template-columns: minmax(320px, 420px) 1fr; height: 100dvh; pointer-events: none; }
+.sidebar { background: #0b1220; border-right: 1px solid var(--stroke); display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; pointer-events: auto; }
 .sidebar-head { padding: 1rem 1.1rem 0.7rem; border-bottom: 1px solid var(--stroke); flex-shrink: 0; }
 .sidebar-kicker { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--orange); font-weight: 700; }
 .sidebar h1 { margin: 0.25rem 0 0.3rem; font-size: 1.4rem; font-weight: 900; background: linear-gradient(135deg, #fdba74, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
