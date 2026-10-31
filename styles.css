@@ -10,7 +10,7 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; font-family: var(--font); background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.6; }
-#map { position: fixed; inset: 0; }
+#map { position: fixed; inset: 0; touch-action: none; }
 
 .splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 30%, #1c1917 0%, #070b14 55%, #020617 100%); text-align: center; padding: 1rem; }
 .splash.hide { display: none; }
@@ -97,10 +97,10 @@ html, body { margin: 0; height: 100%; font-family: var(--font); background: var(
 /* Portrait — single active chapter, scrollable */
 @media (max-width: 767px) and (orientation: portrait) {
   .shell { display: block; height: 100dvh; }
-  .map-chrome { position: fixed; left: 0; right: 0; top: 62dvh; bottom: 0; pointer-events: auto; }
+  .map-chrome { position: fixed; left: 0; right: 0; top: 55dvh; bottom: 0; pointer-events: none; }
   .sidebar {
     position: fixed; left: 0; right: 0; top: 0;
-    height: 62dvh; max-height: 62dvh;
+    height: 55dvh; max-height: 55dvh;
     z-index: 20;
     border-right: none;
     border-bottom: 1px solid rgba(249,115,22,0.35);
@@ -158,4 +158,23 @@ html, body { margin: 0; height: 100%; font-family: var(--font); background: var(
   .toolbar { padding: 0.3rem 0.6rem; }
   .toolbar-note { display: none; }
   .nav-row { padding: 0.35rem 0.6rem 0.45rem; }
+}
+
+
+/* Keep map controls inside the visible map area on phones */
+@media (max-width: 767px) and (orientation: portrait) {
+  .maplibregl-ctrl-top-right {
+    top: auto !important;
+    bottom: 4.5rem;
+    right: 0.5rem;
+  }
+  .maplibregl-popup {
+    z-index: 15;
+  }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .maplibregl-ctrl-top-right {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
 }
