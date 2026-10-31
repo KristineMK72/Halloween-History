@@ -131,7 +131,14 @@ function goToChapter(index, animate = true) {
   });
   const activeCard = storyPanel.querySelector(`.chapter-card[data-index="${chapterIndex}"]`);
   if (activeCard) {
-    activeCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // Scroll the story panel so the full expanded card is visible
+    setTimeout(() => {
+      const panel = document.getElementById("storyPanel");
+      if (panel && activeCard) {
+        const top = activeCard.offsetTop - 8;
+        panel.scrollTo({ top: top, behavior: "smooth" });
+      }
+    }, 50);
     gsap.fromTo(activeCard, { scale: 0.98 }, { scale: 1, duration: 0.35, ease: "back.out(1.4)" });
   }
   document.getElementById("progressLabel").textContent = `Chapter ${chapterIndex + 1} of ${CHAPTERS.length}`;
